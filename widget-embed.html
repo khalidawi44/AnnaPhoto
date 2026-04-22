@@ -1,0 +1,193 @@
+<!-- =========================================================
+     WIDGET ALLIANCE GROUP — À COLLER DANS UN BLOC HTML
+     Largeur recommandée : 1/3 de page (sidebar / colonne)
+     ========================================================= -->
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+.ag-widget { width: 100%; max-width: 360px; margin: 0 auto; font-family: 'Inter', system-ui, sans-serif; box-sizing: border-box; }
+.ag-widget *, .ag-widget *::before, .ag-widget *::after { box-sizing: border-box; }
+
+.ag-widget__link {
+    position: relative; display: block; padding: 28px 24px 22px; text-align: center;
+    text-decoration: none; color: #1a1200;
+    background: linear-gradient(160deg, #f5d98a 0%, #e8c57b 35%, #c9a86a 100%);
+    border-radius: 22px; overflow: hidden; isolation: isolate;
+    box-shadow: 0 20px 45px rgba(201,168,106,.4), 0 0 0 1px rgba(255,255,255,.25) inset;
+    animation: ag-breathe 3.2s ease-in-out infinite;
+    transition: transform .4s cubic-bezier(.22,.61,.36,1);
+}
+.ag-widget__link:hover { transform: translateY(-6px) scale(1.02); animation-play-state: paused; }
+
+@keyframes ag-breathe {
+    0%,100% { box-shadow: 0 20px 45px rgba(201,168,106,.4), 0 0 0 1px rgba(255,255,255,.25) inset; }
+    50%     { box-shadow: 0 28px 60px rgba(201,168,106,.65), 0 0 0 1px rgba(255,255,255,.4) inset; }
+}
+
+.ag-widget__shine {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.5) 50%, transparent 100%);
+    transform: translateX(-100%) skewX(-18deg);
+    animation: ag-shine 3.5s ease-in-out infinite;
+}
+@keyframes ag-shine {
+    0%   { transform: translateX(-100%) skewX(-18deg); }
+    65%  { transform: translateX(200%)  skewX(-18deg); }
+    100% { transform: translateX(200%)  skewX(-18deg); }
+}
+
+.ag-float { position: absolute; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); z-index: 2; }
+.ag-float--rocket  { top: 12px; right: 14px; font-size: 22px; animation: ag-rocket 2.4s ease-in-out infinite; }
+.ag-float--spark-1 { top: 18px; left: 16px;  font-size: 16px; animation: ag-twinkle 1.8s ease-in-out infinite; }
+.ag-float--spark-2 { bottom: 50px; right: 18px; font-size: 14px; animation: ag-twinkle 2.2s ease-in-out .5s infinite; }
+.ag-float--star    { bottom: 70px; left: 18px; font-size: 14px; animation: ag-twinkle 2s ease-in-out 1s infinite; }
+
+@keyframes ag-rocket { 0%,100% { transform: translate(0,0) rotate(-15deg); } 50% { transform: translate(-4px,-10px) rotate(-25deg); } }
+@keyframes ag-twinkle { 0%,100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(1.6) rotate(25deg); opacity: .4; } }
+
+.ag-widget__badge {
+    position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+    background: #0e0e0e; color: #f5d98a; padding: 6px 14px; border-radius: 999px;
+    font-size: 10px; font-weight: 600; letter-spacing: .22em; margin-bottom: 20px;
+    animation: ag-badge-blink 2s ease-in-out infinite;
+}
+.ag-pulse-dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #ff3b3b;
+    box-shadow: 0 0 0 0 rgba(255,59,59,.7);
+    animation: ag-dot-pulse 1.4s ease-in-out infinite;
+}
+@keyframes ag-badge-blink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
+@keyframes ag-dot-pulse   { 0%,100% { box-shadow: 0 0 0 0 rgba(255,59,59,.7); } 50% { box-shadow: 0 0 0 7px rgba(255,59,59,0); } }
+
+.ag-widget__icon {
+    position: relative; z-index: 2; display: grid; place-items: center;
+    width: 70px; height: 70px; margin: 0 auto 18px;
+}
+.ag-icon-bg {
+    position: absolute; inset: 0; border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #fff4d2 0%, #c9a86a 60%, #8a6f3a 100%);
+    box-shadow: 0 8px 20px rgba(0,0,0,.15);
+    animation: ag-icon-spin 6s linear infinite;
+}
+.ag-icon-emoji {
+    position: relative; z-index: 1; font-size: 34px;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
+    animation: ag-icon-jump 1.6s ease-in-out infinite;
+}
+@keyframes ag-icon-spin { to { transform: rotate(360deg); } }
+@keyframes ag-icon-jump { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.08); } }
+
+.ag-widget__title {
+    position: relative; z-index: 2;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px; line-height: 1.15; margin: 0 0 14px;
+    font-weight: 500; color: #1a1200;
+}
+.ag-widget__title-accent { font-style: italic; color: #5a3d00; }
+
+.ag-widget__highlight {
+    position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+    background: #0e0e0e; color: #f5d98a; padding: 8px 16px; border-radius: 8px;
+    font-size: 13px; letter-spacing: .1em; margin-bottom: 14px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+}
+.ag-widget__highlight strong { font-weight: 700; }
+
+.ag-bounce { display: inline-block; animation: ag-bounce 1s ease-in-out infinite; }
+.ag-bounce--delay { animation-delay: .4s; }
+@keyframes ag-bounce {
+    0%,100% { transform: translateY(0) scale(1); }
+    40%     { transform: translateY(-6px) scale(1.15); }
+    60%     { transform: translateY(-3px) scale(1.1); }
+}
+
+.ag-widget__desc {
+    position: relative; z-index: 2;
+    font-size: 13px; line-height: 1.5; color: #3d2900; margin: 0 0 18px;
+}
+
+.ag-widget__cta {
+    position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
+    gap: 10px; background: #0e0e0e; color: #f5d98a; padding: 14px 20px; border-radius: 12px;
+    font-size: 15px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.3);
+    transition: background .3s, color .3s;
+    animation: ag-cta-pulse 1.6s ease-in-out infinite;
+}
+.ag-widget__link:hover .ag-widget__cta { background: #f5d98a; color: #0e0e0e; animation: none; }
+@keyframes ag-cta-pulse {
+    0%,100% { box-shadow: 0 6px 18px rgba(0,0,0,.3), 0 0 0 0 rgba(14,14,14,.35); }
+    50%     { box-shadow: 0 6px 18px rgba(0,0,0,.3), 0 0 0 10px rgba(14,14,14,0); }
+}
+
+.ag-point { display: inline-block; font-size: 18px; }
+.ag-point--left  { animation: ag-point-r .9s ease-in-out infinite; }
+.ag-point--right { animation: ag-point-l .9s ease-in-out infinite; }
+@keyframes ag-point-r { 0%,100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
+@keyframes ag-point-l { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
+
+.ag-widget__domain {
+    position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
+    gap: 6px; font-size: 11px; font-weight: 500; letter-spacing: .12em; color: #3d2900;
+    padding-top: 12px; border-top: 1px dashed rgba(14,14,14,.25);
+}
+.ag-globe { display: inline-block; animation: ag-globe-spin 4s linear infinite; }
+@keyframes ag-globe-spin { to { transform: rotate(360deg); } }
+
+@media (prefers-reduced-motion: reduce) {
+    .ag-widget__link, .ag-widget__shine, .ag-float, .ag-widget__badge, .ag-pulse-dot,
+    .ag-icon-bg, .ag-icon-emoji, .ag-bounce, .ag-widget__cta, .ag-point, .ag-globe
+    { animation: none !important; }
+}
+</style>
+
+<aside class="ag-widget">
+    <a href="https://alliancegroup-inc.com" target="_blank" rel="noopener"
+       class="ag-widget__link"
+       aria-label="Alliance Group — Lancer votre site et boutique avec un template gratuit">
+
+        <span class="ag-widget__shine" aria-hidden="true"></span>
+
+        <span class="ag-float ag-float--rocket"  aria-hidden="true">🚀</span>
+        <span class="ag-float ag-float--spark-1" aria-hidden="true">✨</span>
+        <span class="ag-float ag-float--spark-2" aria-hidden="true">💫</span>
+        <span class="ag-float ag-float--star"    aria-hidden="true">⭐</span>
+
+        <span class="ag-widget__badge">
+            <span class="ag-pulse-dot" aria-hidden="true"></span>
+            OFFRE LIMITÉE
+        </span>
+
+        <span class="ag-widget__icon" aria-hidden="true">
+            <span class="ag-icon-bg"></span>
+            <span class="ag-icon-emoji">🎁</span>
+        </span>
+
+        <h3 class="ag-widget__title">
+            Lancez votre site
+            <br><span class="ag-widget__title-accent">&amp; votre boutique</span>
+        </h3>
+
+        <div class="ag-widget__highlight">
+            <span class="ag-bounce" aria-hidden="true">🔥</span>
+            <strong>TEMPLATE GRATUIT</strong>
+            <span class="ag-bounce ag-bounce--delay" aria-hidden="true">🎯</span>
+        </div>
+
+        <p class="ag-widget__desc">
+            Site vitrine, boutique en ligne, design sur-mesure — commencez maintenant sans frais.
+        </p>
+
+        <div class="ag-widget__cta">
+            <span class="ag-point ag-point--left"  aria-hidden="true">👉</span>
+            <span>Cliquez ici</span>
+            <span class="ag-point ag-point--right" aria-hidden="true">👈</span>
+        </div>
+
+        <div class="ag-widget__domain">
+            <span class="ag-globe" aria-hidden="true">🌐</span>
+            alliancegroup-inc.com
+        </div>
+    </a>
+</aside>
