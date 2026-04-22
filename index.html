@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anna Photo — Carrousel</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="carousel.css">
+</head>
+<body>
+
+    <header class="site-header">
+        <div class="brand">Anna Photo</div>
+        <nav class="site-nav">
+            <a href="#">Galerie</a>
+            <a href="#">À propos</a>
+            <a href="#">Contact</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <p class="hero-eyebrow">Portfolio</p>
+        <h1 class="hero-title">Instants suspendus</h1>
+        <p class="hero-subtitle">Une sélection de photographies — lumière naturelle, regards et paysages.</p>
+    </section>
+
+    <div class="carousel"
+         data-autoplay="true"
+         data-interval="5000"
+         aria-roledescription="carrousel"
+         aria-label="Galerie photo Anna">
+
+        <div class="carousel__viewport">
+            <ul class="carousel__track">
+                <li class="carousel__slide" aria-roledescription="diapositive" aria-label="1 sur 5">
+                    <figure>
+                        <img src="https://images.unsplash.com/photo-1502920917128-1aa500764cbd?auto=format&fit=crop&w=1920&q=80"
+                             alt="Paysage de montagne au lever du soleil" loading="eager">
+                        <figcaption>
+                            <span class="caption-index">01</span>
+                            <span class="caption-title">Lueurs d'aube</span>
+                        </figcaption>
+                    </figure>
+                </li>
+                <li class="carousel__slide" aria-roledescription="diapositive" aria-label="2 sur 5">
+                    <figure>
+                        <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=1920&q=80"
+                             alt="Forêt brumeuse" loading="lazy">
+                        <figcaption>
+                            <span class="caption-index">02</span>
+                            <span class="caption-title">Silence des pins</span>
+                        </figcaption>
+                    </figure>
+                </li>
+                <li class="carousel__slide" aria-roledescription="diapositive" aria-label="3 sur 5">
+                    <figure>
+                        <img src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?auto=format&fit=crop&w=1920&q=80"
+                             alt="Lac de montagne" loading="lazy">
+                        <figcaption>
+                            <span class="caption-index">03</span>
+                            <span class="caption-title">Reflets d'altitude</span>
+                        </figcaption>
+                    </figure>
+                </li>
+                <li class="carousel__slide" aria-roledescription="diapositive" aria-label="4 sur 5">
+                    <figure>
+                        <img src="https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?auto=format&fit=crop&w=1920&q=80"
+                             alt="Côte rocheuse" loading="lazy">
+                        <figcaption>
+                            <span class="caption-index">04</span>
+                            <span class="caption-title">Bord du monde</span>
+                        </figcaption>
+                    </figure>
+                </li>
+                <li class="carousel__slide" aria-roledescription="diapositive" aria-label="5 sur 5">
+                    <figure>
+                        <img src="https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1920&q=80"
+                             alt="Vallée au coucher du soleil" loading="lazy">
+                        <figcaption>
+                            <span class="caption-index">05</span>
+                            <span class="caption-title">Dernière lumière</span>
+                        </figcaption>
+                    </figure>
+                </li>
+            </ul>
+        </div>
+
+        <button class="carousel__btn carousel__btn--prev" type="button" aria-label="Image précédente">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <button class="carousel__btn carousel__btn--next" type="button" aria-label="Image suivante">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+
+        <div class="carousel__progress" aria-hidden="true"><span class="carousel__progress-bar"></span></div>
+
+        <div class="carousel__counter" aria-live="polite">
+            <span class="carousel__counter-current">1</span>
+            <span class="carousel__counter-sep">/</span>
+            <span class="carousel__counter-total">5</span>
+        </div>
+
+        <div class="carousel__dots" role="tablist" aria-label="Choisir une image"></div>
+    </div>
+
+    <footer class="site-footer">
+        <p>&copy; Anna Photo — Tous droits réservés</p>
+    </footer>
+
+    <script src="carousel.js"></script>
+</body>
+</html>
