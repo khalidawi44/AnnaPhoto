@@ -1,33 +1,60 @@
 <!-- =========================================================
      WIDGET ALLIANCE GROUP — À COLLER DANS UN BLOC HTML
      Largeur recommandée : 1/3 de page (sidebar / colonne)
+     >>> Remplace REMPLACER_URL_LOGO par l'URL de ton logo
+         (médiathèque WordPress ou autre hébergement)
      ========================================================= -->
 
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
 .ag-widget { width: 100%; max-width: 360px; margin: 0 auto; font-family: 'Inter', system-ui, sans-serif; box-sizing: border-box; }
 .ag-widget *, .ag-widget *::before, .ag-widget *::after { box-sizing: border-box; }
 
 .ag-widget__link {
-    position: relative; display: block; padding: 28px 24px 22px; text-align: center;
-    text-decoration: none; color: #1a1200;
-    background: linear-gradient(160deg, #f5d98a 0%, #e8c57b 35%, #c9a86a 100%);
+    position: relative; display: block; padding: 26px 24px 22px; text-align: center;
+    text-decoration: none; color: #f5d98a;
+    background: radial-gradient(ellipse at top, #1a1400 0%, #0a0a0a 55%, #000 100%);
     border-radius: 22px; overflow: hidden; isolation: isolate;
-    box-shadow: 0 20px 45px rgba(201,168,106,.4), 0 0 0 1px rgba(255,255,255,.25) inset;
-    animation: ag-breathe 3.2s ease-in-out infinite;
+    border: 1px solid rgba(201, 168, 106, 0.35);
+    box-shadow:
+        0 20px 45px rgba(0, 0, 0, 0.6),
+        0 0 40px rgba(201, 168, 106, 0.15),
+        0 0 0 1px rgba(201, 168, 106, 0.1) inset;
+    animation: ag-glow 3.2s ease-in-out infinite;
     transition: transform .4s cubic-bezier(.22,.61,.36,1);
 }
 .ag-widget__link:hover { transform: translateY(-6px) scale(1.02); animation-play-state: paused; }
 
-@keyframes ag-breathe {
-    0%,100% { box-shadow: 0 20px 45px rgba(201,168,106,.4), 0 0 0 1px rgba(255,255,255,.25) inset; }
-    50%     { box-shadow: 0 28px 60px rgba(201,168,106,.65), 0 0 0 1px rgba(255,255,255,.4) inset; }
+@keyframes ag-glow {
+    0%,100% { box-shadow: 0 20px 45px rgba(0,0,0,.6), 0 0 40px rgba(201,168,106,.15), 0 0 0 1px rgba(201,168,106,.1) inset; }
+    50%     { box-shadow: 0 28px 60px rgba(0,0,0,.7), 0 0 60px rgba(245,217,138,.3),  0 0 0 1px rgba(245,217,138,.25) inset; }
 }
 
+/* Bordure dorée animée */
+.ag-widget__link::before {
+    content: "";
+    position: absolute; inset: -2px; z-index: 0; border-radius: 24px; pointer-events: none;
+    background: conic-gradient(from 0deg, transparent 0%, #f5d98a 20%, #c9a86a 35%, transparent 50%, transparent 70%, #f5d98a 85%, transparent 100%);
+    opacity: .55;
+    animation: ag-rotate 4s linear infinite;
+}
+.ag-widget__link::after {
+    content: "";
+    position: absolute; inset: 0; z-index: 0; border-radius: 22px;
+    background: radial-gradient(ellipse at top, #1a1400 0%, #0a0a0a 55%, #000 100%);
+}
+@keyframes ag-rotate { to { transform: rotate(360deg); } }
+
+/* Sweep doré qui traverse */
 .ag-widget__shine {
-    position: absolute; inset: 0; z-index: 1; pointer-events: none;
-    background: linear-gradient(120deg, transparent 0%, rgba(255,255,255,.5) 50%, transparent 100%);
+    position: absolute; inset: 0; z-index: 1; pointer-events: none; border-radius: 22px;
+    background: linear-gradient(120deg,
+        transparent 0%,
+        rgba(245, 217, 138, 0.0) 35%,
+        rgba(245, 217, 138, 0.35) 50%,
+        rgba(245, 217, 138, 0.0) 65%,
+        transparent 100%);
     transform: translateX(-100%) skewX(-18deg);
     animation: ag-shine 3.5s ease-in-out infinite;
 }
@@ -37,62 +64,87 @@
     100% { transform: translateX(200%)  skewX(-18deg); }
 }
 
-.ag-float { position: absolute; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(0,0,0,.2)); z-index: 2; }
-.ag-float--rocket  { top: 12px; right: 14px; font-size: 22px; animation: ag-rocket 2.4s ease-in-out infinite; }
-.ag-float--spark-1 { top: 18px; left: 16px;  font-size: 16px; animation: ag-twinkle 1.8s ease-in-out infinite; }
-.ag-float--spark-2 { bottom: 50px; right: 18px; font-size: 14px; animation: ag-twinkle 2.2s ease-in-out .5s infinite; }
-.ag-float--star    { bottom: 70px; left: 18px; font-size: 14px; animation: ag-twinkle 2s ease-in-out 1s infinite; }
+/* Contenu au-dessus des effets */
+.ag-widget__inner { position: relative; z-index: 2; }
 
-@keyframes ag-rocket { 0%,100% { transform: translate(0,0) rotate(-15deg); } 50% { transform: translate(-4px,-10px) rotate(-25deg); } }
+/* Emojis flottants */
+.ag-float { position: absolute; pointer-events: none; filter: drop-shadow(0 2px 4px rgba(245,217,138,.3)); z-index: 3; }
+.ag-float--rocket  { top: 10px; right: 14px; font-size: 22px; animation: ag-rocket 2.4s ease-in-out infinite; }
+.ag-float--spark-1 { top: 14px; left: 14px;  font-size: 16px; animation: ag-twinkle 1.8s ease-in-out infinite; }
+.ag-float--spark-2 { bottom: 58px; right: 16px; font-size: 14px; animation: ag-twinkle 2.2s ease-in-out .5s infinite; }
+.ag-float--star    { bottom: 78px; left: 16px;  font-size: 14px; animation: ag-twinkle 2s ease-in-out 1s infinite; }
+
+@keyframes ag-rocket  { 0%,100% { transform: translate(0,0) rotate(-15deg); } 50% { transform: translate(-4px,-10px) rotate(-25deg); } }
 @keyframes ag-twinkle { 0%,100% { transform: scale(1) rotate(0deg); opacity: 1; } 50% { transform: scale(1.6) rotate(25deg); opacity: .4; } }
 
+/* ---------- LOGO ---------- */
+.ag-widget__logo-wrap {
+    position: relative;
+    margin: 0 auto 18px;
+    padding: 8px 14px;
+    display: inline-block;
+}
+.ag-widget__logo-wrap::before {
+    content: "";
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at center, rgba(245, 217, 138, 0.25) 0%, transparent 70%);
+    filter: blur(12px);
+    animation: ag-halo 2.8s ease-in-out infinite;
+    z-index: 0;
+}
+.ag-widget__logo {
+    position: relative; z-index: 1;
+    max-width: 220px; width: 100%; height: auto;
+    display: block;
+    filter: drop-shadow(0 2px 8px rgba(245, 217, 138, 0.35));
+}
+@keyframes ag-halo {
+    0%,100% { opacity: .6; transform: scale(1); }
+    50%     { opacity: 1;  transform: scale(1.1); }
+}
+
+/* Badge */
 .ag-widget__badge {
-    position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
-    background: #0e0e0e; color: #f5d98a; padding: 6px 14px; border-radius: 999px;
-    font-size: 10px; font-weight: 600; letter-spacing: .22em; margin-bottom: 20px;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #f5d98a 0%, #c9a86a 100%);
+    color: #0a0a0a; padding: 6px 14px; border-radius: 999px;
+    font-size: 10px; font-weight: 700; letter-spacing: .22em; margin-bottom: 18px;
     animation: ag-badge-blink 2s ease-in-out infinite;
+    box-shadow: 0 4px 12px rgba(245, 217, 138, 0.4);
 }
 .ag-pulse-dot {
     width: 7px; height: 7px; border-radius: 50%; background: #ff3b3b;
     box-shadow: 0 0 0 0 rgba(255,59,59,.7);
     animation: ag-dot-pulse 1.4s ease-in-out infinite;
 }
-@keyframes ag-badge-blink { 0%,100% { opacity: 1; } 50% { opacity: .75; } }
+@keyframes ag-badge-blink { 0%,100% { opacity: 1; } 50% { opacity: .8; } }
 @keyframes ag-dot-pulse   { 0%,100% { box-shadow: 0 0 0 0 rgba(255,59,59,.7); } 50% { box-shadow: 0 0 0 7px rgba(255,59,59,0); } }
 
-.ag-widget__icon {
-    position: relative; z-index: 2; display: grid; place-items: center;
-    width: 70px; height: 70px; margin: 0 auto 18px;
-}
-.ag-icon-bg {
-    position: absolute; inset: 0; border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #fff4d2 0%, #c9a86a 60%, #8a6f3a 100%);
-    box-shadow: 0 8px 20px rgba(0,0,0,.15);
-    animation: ag-icon-spin 6s linear infinite;
-}
-.ag-icon-emoji {
-    position: relative; z-index: 1; font-size: 34px;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,.25));
-    animation: ag-icon-jump 1.6s ease-in-out infinite;
-}
-@keyframes ag-icon-spin { to { transform: rotate(360deg); } }
-@keyframes ag-icon-jump { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-4px) scale(1.08); } }
-
+/* Titre */
 .ag-widget__title {
-    position: relative; z-index: 2;
     font-family: 'Cormorant Garamond', serif;
     font-size: 26px; line-height: 1.15; margin: 0 0 14px;
-    font-weight: 500; color: #1a1200;
+    font-weight: 600;
+    background: linear-gradient(135deg, #fff4d2 0%, #f5d98a 40%, #c9a86a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: #f5d98a;
 }
-.ag-widget__title-accent { font-style: italic; color: #5a3d00; }
+.ag-widget__title-accent {
+    font-style: italic; font-weight: 500;
+    display: inline-block;
+}
 
+/* Highlight "GRATUIT" */
 .ag-widget__highlight {
-    position: relative; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
-    background: #0e0e0e; color: #f5d98a; padding: 8px 16px; border-radius: 8px;
+    display: inline-flex; align-items: center; gap: 8px;
+    background: linear-gradient(135deg, #f5d98a 0%, #c9a86a 100%);
+    color: #0a0a0a; padding: 8px 16px; border-radius: 8px;
     font-size: 13px; letter-spacing: .1em; margin-bottom: 14px;
-    box-shadow: 0 4px 12px rgba(0,0,0,.25);
+    box-shadow: 0 4px 14px rgba(245, 217, 138, 0.35);
+    font-weight: 700;
 }
-.ag-widget__highlight strong { font-weight: 700; }
 
 .ag-bounce { display: inline-block; animation: ag-bounce 1s ease-in-out infinite; }
 .ag-bounce--delay { animation-delay: .4s; }
@@ -102,23 +154,28 @@
     60%     { transform: translateY(-3px) scale(1.1); }
 }
 
+/* Description */
 .ag-widget__desc {
-    position: relative; z-index: 2;
-    font-size: 13px; line-height: 1.5; color: #3d2900; margin: 0 0 18px;
+    font-size: 13px; line-height: 1.5; color: #d4c89a; margin: 0 0 18px;
 }
 
+/* Bouton CTA */
 .ag-widget__cta {
-    position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
-    gap: 10px; background: #0e0e0e; color: #f5d98a; padding: 14px 20px; border-radius: 12px;
-    font-size: 15px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
-    margin-bottom: 14px; box-shadow: 0 6px 18px rgba(0,0,0,.3);
-    transition: background .3s, color .3s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    background: linear-gradient(135deg, #f5d98a 0%, #e8c57b 50%, #c9a86a 100%);
+    color: #0a0a0a; padding: 14px 20px; border-radius: 12px;
+    font-size: 15px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 18px rgba(245, 217, 138, 0.35), 0 0 0 1px rgba(245, 217, 138, 0.2) inset;
+    transition: background .3s, color .3s, transform .3s;
     animation: ag-cta-pulse 1.6s ease-in-out infinite;
 }
-.ag-widget__link:hover .ag-widget__cta { background: #f5d98a; color: #0e0e0e; animation: none; }
+.ag-widget__link:hover .ag-widget__cta {
+    background: #fff4d2; transform: scale(1.03);
+}
 @keyframes ag-cta-pulse {
-    0%,100% { box-shadow: 0 6px 18px rgba(0,0,0,.3), 0 0 0 0 rgba(14,14,14,.35); }
-    50%     { box-shadow: 0 6px 18px rgba(0,0,0,.3), 0 0 0 10px rgba(14,14,14,0); }
+    0%,100% { box-shadow: 0 6px 18px rgba(245,217,138,.35), 0 0 0 0 rgba(245,217,138,.4); }
+    50%     { box-shadow: 0 6px 18px rgba(245,217,138,.35), 0 0 0 10px rgba(245,217,138,0); }
 }
 
 .ag-point { display: inline-block; font-size: 18px; }
@@ -127,17 +184,60 @@
 @keyframes ag-point-r { 0%,100% { transform: translateX(0); } 50% { transform: translateX(6px); } }
 @keyframes ag-point-l { 0%,100% { transform: translateX(0); } 50% { transform: translateX(-6px); } }
 
+/* Domaine */
 .ag-widget__domain {
-    position: relative; z-index: 2; display: flex; align-items: center; justify-content: center;
-    gap: 6px; font-size: 11px; font-weight: 500; letter-spacing: .12em; color: #3d2900;
-    padding-top: 12px; border-top: 1px dashed rgba(14,14,14,.25);
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    font-size: 11px; font-weight: 500; letter-spacing: .12em; color: #c9a86a;
+    padding-top: 12px; border-top: 1px dashed rgba(201, 168, 106, 0.3);
 }
 .ag-globe { display: inline-block; animation: ag-globe-spin 4s linear infinite; }
 @keyframes ag-globe-spin { to { transform: rotate(360deg); } }
 
+/* Mention "fièrement créé par" */
+.ag-widget__credit {
+    margin-top: 10px;
+    font-size: 10px;
+    letter-spacing: .15em;
+    text-transform: uppercase;
+    color: #8a7d5a;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-style: italic;
+}
+.ag-widget__credit-brand {
+    background: linear-gradient(135deg, #fff4d2 0%, #f5d98a 40%, #c9a86a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 700;
+    font-style: normal;
+    letter-spacing: .18em;
+    animation: ag-shimmer 2.6s ease-in-out infinite;
+}
+.ag-heart {
+    display: inline-block;
+    color: #ff3b3b;
+    -webkit-text-fill-color: #ff3b3b;
+    animation: ag-heart-beat 1.2s ease-in-out infinite;
+}
+@keyframes ag-shimmer {
+    0%,100% { filter: brightness(1); }
+    50%     { filter: brightness(1.4); }
+}
+@keyframes ag-heart-beat {
+    0%,100% { transform: scale(1); }
+    30%     { transform: scale(1.25); }
+    60%     { transform: scale(1.1); }
+}
+
 @media (prefers-reduced-motion: reduce) {
-    .ag-widget__link, .ag-widget__shine, .ag-float, .ag-widget__badge, .ag-pulse-dot,
-    .ag-icon-bg, .ag-icon-emoji, .ag-bounce, .ag-widget__cta, .ag-point, .ag-globe
+    .ag-widget__link, .ag-widget__link::before, .ag-widget__shine, .ag-float,
+    .ag-widget__logo-wrap::before, .ag-widget__badge, .ag-pulse-dot,
+    .ag-bounce, .ag-widget__cta, .ag-point, .ag-globe,
+    .ag-widget__credit-brand, .ag-heart
     { animation: none !important; }
 }
 </style>
@@ -145,7 +245,7 @@
 <aside class="ag-widget">
     <a href="https://alliancegroup-inc.com" target="_blank" rel="noopener"
        class="ag-widget__link"
-       aria-label="Alliance Group — Lancer votre site et boutique avec un template gratuit">
+       aria-label="Alliance Groupe — Lancer votre site et boutique avec un template gratuit">
 
         <span class="ag-widget__shine" aria-hidden="true"></span>
 
@@ -154,40 +254,56 @@
         <span class="ag-float ag-float--spark-2" aria-hidden="true">💫</span>
         <span class="ag-float ag-float--star"    aria-hidden="true">⭐</span>
 
-        <span class="ag-widget__badge">
-            <span class="ag-pulse-dot" aria-hidden="true"></span>
-            OFFRE LIMITÉE
-        </span>
+        <div class="ag-widget__inner">
 
-        <span class="ag-widget__icon" aria-hidden="true">
-            <span class="ag-icon-bg"></span>
-            <span class="ag-icon-emoji">🎁</span>
-        </span>
+            <!-- ===== LOGO — remplace l'URL ci-dessous ===== -->
+            <div class="ag-widget__logo-wrap">
+                <img src="REMPLACER_URL_LOGO"
+                     alt="Alliance Groupe"
+                     class="ag-widget__logo"
+                     loading="lazy">
+            </div>
 
-        <h3 class="ag-widget__title">
-            Lancez votre site
-            <br><span class="ag-widget__title-accent">&amp; votre boutique</span>
-        </h3>
+            <div>
+                <span class="ag-widget__badge">
+                    <span class="ag-pulse-dot" aria-hidden="true"></span>
+                    OFFRE LIMITÉE
+                </span>
+            </div>
 
-        <div class="ag-widget__highlight">
-            <span class="ag-bounce" aria-hidden="true">🔥</span>
-            <strong>TEMPLATE GRATUIT</strong>
-            <span class="ag-bounce ag-bounce--delay" aria-hidden="true">🎯</span>
-        </div>
+            <h3 class="ag-widget__title">
+                Lancez votre site
+                <br><span class="ag-widget__title-accent">&amp; votre boutique</span>
+            </h3>
 
-        <p class="ag-widget__desc">
-            Site vitrine, boutique en ligne, design sur-mesure — commencez maintenant sans frais.
-        </p>
+            <div class="ag-widget__highlight">
+                <span class="ag-bounce" aria-hidden="true">🔥</span>
+                <strong>TEMPLATE GRATUIT</strong>
+                <span class="ag-bounce ag-bounce--delay" aria-hidden="true">🎯</span>
+            </div>
 
-        <div class="ag-widget__cta">
-            <span class="ag-point ag-point--left"  aria-hidden="true">👉</span>
-            <span>Cliquez ici</span>
-            <span class="ag-point ag-point--right" aria-hidden="true">👈</span>
-        </div>
+            <p class="ag-widget__desc">
+                Site vitrine, boutique en ligne, design sur-mesure — commencez maintenant sans frais.
+            </p>
 
-        <div class="ag-widget__domain">
-            <span class="ag-globe" aria-hidden="true">🌐</span>
-            alliancegroup-inc.com
+            <div class="ag-widget__cta">
+                <span class="ag-point ag-point--left"  aria-hidden="true">👉</span>
+                <span>Cliquez ici</span>
+                <span class="ag-point ag-point--right" aria-hidden="true">👈</span>
+            </div>
+
+            <div class="ag-widget__domain">
+                <span class="ag-globe" aria-hidden="true">🌐</span>
+                alliancegroup-inc.com
+            </div>
+
+            <p class="ag-widget__credit">
+                Site fièrement créé
+                <span class="ag-heart" aria-hidden="true">❤</span>
+                par
+                <span class="ag-widget__credit-brand">Alliance Groupe</span>
+            </p>
+
         </div>
     </a>
 </aside>
