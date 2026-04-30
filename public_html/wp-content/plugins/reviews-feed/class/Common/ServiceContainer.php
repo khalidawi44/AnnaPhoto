@@ -1,0 +1,90 @@
+<?php
+
+namespace SmashBalloon\Reviews\Common;
+
+use SmashBalloon\Reviews\Common\Admin\Blocks\SB_Recommended_Blocks;
+use SmashBalloon\Reviews\Common\Admin\MenuService;
+use SmashBalloon\Reviews\Common\Admin\SBR_Admin_Notice;
+use SmashBalloon\Reviews\Common\Admin\SBR_Collections_Builder;
+use SmashBalloon\Reviews\Common\Admin\SBR_New_User;
+use SmashBalloon\Reviews\Common\Admin\SBR_Notifications;
+use SmashBalloon\Reviews\Common\Admin\SBR_Plugin_Insltaller;
+use SmashBalloon\Reviews\Common\Admin\SBR_Support_Tool;
+use SmashBalloon\Reviews\Common\Builder\SBR_Feed_Builder;
+use SmashBalloon\Reviews\Common\Builder\SBR_New_Providers_Manager;
+use SmashBalloon\Reviews\Common\Integrations\Providers\Google;
+use SmashBalloon\Reviews\Common\Integrations\Providers\Yelp;
+use SmashBalloon\Reviews\Common\Services\CLIService;
+use SmashBalloon\Reviews\Common\Services\FeedCacheUpdateService;
+use SmashBalloon\Reviews\Common\Services\SBR_Upgrader;
+use SmashBalloon\Reviews\Common\Services\SettingsManagerService;
+use SmashBalloon\Reviews\Common\Services\ShortcodeService;
+use SmashBalloon\Reviews\Common\Services\MigrationReactivationNotice;
+use SmashBalloon\Reviews\Common\Services\SiteUrlWatcher;
+use SmashBalloon\Reviews\Common\Utils\EmailVerification;
+use Smashballoon\Stubs\Services\ServiceProvider;
+use SmashBalloon\Reviews\Common\Services\Upgrade\RoutineManagerService;
+use SmashBalloon\Reviews\Common\Builder\SBR_Feed_Saver_Manager;
+use SmashBalloon\Reviews\Common\Migrations\Reviews_Post;
+use SmashBalloon\Reviews\Common\Settings\SBR_Settings_Builder;
+use SmashBalloon\Reviews\Common\Admin\SBR_About_Builder;
+use SmashBalloon\Reviews\Common\Admin\SBR_Support_Builder;
+use SmashBalloon\Reviews\Common\Tooltip_Wizard;
+use SmashBalloon\Reviews\Common\Admin\Blocks\SB_Reviews_Blocks;
+use SmashBalloon\Reviews\Common\ReviewAlerts\SBR_Review_Alert_Service;
+use SmashBalloon\Reviews\Common\ReviewAlerts\SBR_Review_Alert_Frontend;
+use SmashBalloon\Reviews\Common\ReviewAlerts\SBR_ReviewAlert_Builder;
+
+class ServiceContainer extends ServiceProvider
+{
+	protected $services = [
+		Reviews_Post::class,
+		MenuService::class,
+		RoutineManagerService::class,
+		//Customizer Services
+		\Smashballoon\Customizer\V2\ServiceContainer::class,
+		FeedCacheUpdateService::class,
+		SettingsManagerService::class,
+		ShortcodeService::class,
+		// SMASH-1281 — syncs sbr_settings['website_url'] when WP admin
+		// legitimately changes the site URL, preventing the proactive
+		// site-migration guard from spuriously firing on HTTP→HTTPS rollouts
+		// or www/apex swaps.
+		SiteUrlWatcher::class,
+		// SMASH-1281 — renders the dismissible admin notice after a
+		// successful silent license re-activation on a migrated site.
+		MigrationReactivationNotice::class,
+		Google::class,
+		Yelp::class,
+		CLIService::class,
+		SBR_Feed_Saver_Manager::class,
+		SBR_New_Providers_Manager::class,
+		SBR_Feed_Builder::class,
+		Clear_Cache::class,
+		SBR_Settings_Builder::class,
+		SBR_About_Builder::class,
+		SBR_Support_Builder::class,
+		SBR_Admin_Notice::class,
+		SBR_Plugin_Insltaller::class,
+		SB_Reviews_Blocks::class,
+		SB_Recommended_Blocks::class,
+		Tooltip_Wizard::class,
+		SBR_Notifications::class,
+		SBR_New_User::class,
+		SBR_Upgrader::class,
+		SBR_Collections_Builder::class,
+		SBR_Support_Tool::class,
+		Error_Reporter::class,
+		// Review Alert Services
+		SBR_Review_Alert_Service::class,
+		SBR_Review_Alert_Frontend::class,
+		SBR_ReviewAlert_Builder::class,
+	];
+
+	public function register(): void
+	{
+		foreach ($this->services as $service) {
+			Container::getInstance()->get($service)->register();
+		}
+	}
+}

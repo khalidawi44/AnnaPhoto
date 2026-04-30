@@ -1,0 +1,898 @@
+# Translation of Plugins - Feeds for TikTok (TikTok feed, video, and gallery plugin) - Stable (latest release) in French (France)
+# This file is distributed under the same license as the Plugins - Feeds for TikTok (TikTok feed, video, and gallery plugin) - Stable (latest release) package.
+msgid ""
+msgstr ""
+"PO-Revision-Date: 2025-02-07 12:57:28+0000\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=n > 1;\n"
+"X-Generator: GlotPress/4.0.1\n"
+"Language: fr\n"
+"Project-Id-Version: Plugins - Feeds for TikTok (TikTok feed, video, and gallery plugin) - Stable (latest release)\n"
+
+#: inc/Common/Services/PluginInstallerService.php:52
+msgid "Could not install addon. Please download from smashballoon.com and install manually."
+msgstr "Impossible d’installer l’extension. Veuillez la télécharger depuis smashballoon.com et l’installer manuellement."
+
+#: inc/Common/Services/PluginInstallerService.php:112
+msgid "Plugin Installed & Activated."
+msgstr "Extension installée et activée."
+
+#: inc/Common/Services/PluginInstallerService.php:112
+msgid "Plugin Installed."
+msgstr "Extension installée."
+
+#: inc/Common/Services/PluginInstallerService.php:147
+msgid "Could not Activate the Plugin. Please Activate from the Plugins page."
+msgstr "Impossible d’activer l’extension. Veuillez l’activer depuis la page des extensions."
+
+#: inc/Common/Services/PluginInstallerService.php:178
+msgid "Could not deactivate the Plugin. Please deactivate from the Plugins page."
+msgstr "Impossible de désactiver l’extension. Veuillez la désactiver depuis la page des extensions."
+
+#: inc/Common/Services/PluginUpgraderService.php:122
+msgid "You are not allowed to install plugins."
+msgstr "Vous n’avez pas les droits suffisants pour installer des extensions."
+
+#: inc/Common/Services/PluginUpgraderService.php:135
+#: inc/Common/Services/PluginUpgraderService.php:312
+#: inc/Common/Services/PluginUpgraderService.php:337
+msgid "You are not licensed."
+msgstr "Vous n’avez pas de licence."
+
+#: inc/Common/Services/PluginUpgraderService.php:244
+msgid "Could not connect."
+msgstr "Impossible de se connecter."
+
+#: inc/Common/Services/PluginUpgraderService.php:256
+msgid "Could not install upgrade. Please download from smashballoon.com and install manually."
+msgstr "Impossible d’installer la mise à niveau. Veuillez la télécharger depuis smashballoon.com et l’installer manuellement."
+
+#: inc/Common/Services/PluginUpgraderService.php:293
+#: inc/Common/Services/PluginUpgraderService.php:365
+msgid "Plugin installed & activated."
+msgstr "Extension installée et activée."
+
+#: inc/Common/Services/PluginUpgraderService.php:369
+msgid "Pro version installed but needs to be activated from the Plugins page inside your WordPress admin."
+msgstr "La version Pro est installée, mais elle doit être activée depuis la page Extensions dans votre espace d’administration WordPress."
+
+#: inc/Common/Services/PluginUpgraderService.php:441
+msgid "This license is expired."
+msgstr "Cette licence est expirée."
+
+#: inc/Common/Services/PluginUpgraderService.php:444
+msgid "We encountered a problem unlocking the PRO features. Please install the PRO version manually."
+msgstr "Nous avons rencontré un problème pour déverrouiller les fonctionnalités PRO. Veuillez installer la version PRO manuellement."
+
+#. Plugin URI of the plugin
+#: feeds-for-tiktok.php
+msgid "https://smashballoon.com/tiktok-feeds/"
+msgstr "https://smashballoon.com/tiktok-feeds/"
+
+#. Description of the plugin
+#: feeds-for-tiktok.php
+msgid "Add TikTok feeds to your website."
+msgstr "Ajoutez des flux TikTok à votre site."
+
+#. Author of the plugin
+#: feeds-for-tiktok.php
+msgid "Smash Balloon"
+msgstr "Smash Balloon"
+
+#. Author URI of the plugin
+#: feeds-for-tiktok.php
+msgid "https://smashballoon.com/"
+msgstr "https://smashballoon.com/"
+
+#: inc/Common/Admin/MenuService.php:30 inc/Common/Utils/Utils.php:796
+msgid "All Feeds"
+msgstr "Tous les flux"
+
+#: inc/Common/Admin/MenuService.php:40
+msgid "TikTok Feeds"
+msgstr "Flux TikTok"
+
+#: inc/Common/Admin/MenuService.php:70
+#: inc/Common/Customizer/Tabs/SettingsTab.php:28 inc/Common/Utils/Utils.php:797
+msgid "Settings"
+msgstr "Réglages"
+
+#: inc/Common/Admin/SupportBuilder.php:101
+msgid "Getting Started"
+msgstr "Premiers pas"
+
+#: inc/Common/Admin/SupportBuilder.php:102
+msgid "Some helpful resources to get you started"
+msgstr "Quelques ressources utiles pour commencer"
+
+#: inc/Common/Admin/SupportBuilder.php:106
+msgid "Getting Started with TikTok Feeds"
+msgstr "Premiers pas avec TikTok Feeds"
+
+#: inc/Common/Admin/SupportBuilder.php:110
+msgid "How Do I Show a Feed from Another Account"
+msgstr "Comment puis-je afficher un flux d’un autre compte ?"
+
+#: inc/Common/Admin/SupportBuilder.php:114
+msgid "How to Keep My Account Connected"
+msgstr "Comment garder mon compte connecté ?"
+
+#: inc/Common/Admin/SupportBuilder.php:119
+msgid "More Help Getting started"
+msgstr "Plus d’aide pour démarrer"
+
+#: inc/Common/Admin/SupportBuilder.php:124
+msgid "Docs & Troubleshooting"
+msgstr "Docs et dépannage"
+
+#: inc/Common/Admin/SupportBuilder.php:125
+msgid "Run into an issue? Check out our help docs."
+msgstr "Vous rencontrez un problème ? Consultez nos documents d’aide."
+
+#: inc/Common/Admin/SupportBuilder.php:129
+msgid "Error Message Reference"
+msgstr "Référence du message d’erreur"
+
+#: inc/Common/Admin/SupportBuilder.php:133
+msgid "My Feed is Not Displaying"
+msgstr "Mon flux n’est pas affiché"
+
+#: inc/Common/Admin/SupportBuilder.php:137
+msgid "My Feed is Not Updating"
+msgstr "Mon flux ne se met pas à jour"
+
+#: inc/Common/Admin/SupportBuilder.php:142
+msgid "View Documentation"
+msgstr "Voir la documentation"
+
+#: inc/Common/Admin/SupportBuilder.php:147
+msgid "Additional Resources"
+msgstr "Ressources supplémentaires"
+
+#: inc/Common/Admin/SupportBuilder.php:148
+msgid "To help you get the most out of the plugin"
+msgstr "Pour vous aider à tirer le meilleur parti de l’extension"
+
+#: inc/Common/Admin/SupportBuilder.php:152
+msgid "Video Filtering Guide?"
+msgstr "Guide de filtrage vidéo ?"
+
+#: inc/Common/Admin/SupportBuilder.php:156
+msgid "Can I Display Multiple Feeds on One Page?"
+msgstr "Puis-je afficher plusieurs flux sur une seule page ?"
+
+#: inc/Common/Admin/SupportBuilder.php:160
+msgid "How Do I Embed a Feed Directly In a Template?"
+msgstr "Comment puis-je intégrer un flux directement dans un modèle ?"
+
+#: inc/Common/Admin/SupportBuilder.php:165
+msgid "View Blog"
+msgstr "Voir le blog"
+
+#: inc/Common/Customizer/FeedBuilder.php:178
+msgid "Default"
+msgstr "Par défaut"
+
+#: inc/Common/Customizer/FeedBuilder.php:182
+msgid "Cards"
+msgstr "Cartes"
+
+#: inc/Common/Customizer/FeedBuilder.php:187
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:127
+msgid "List"
+msgstr "Liste"
+
+#: inc/Common/Customizer/FeedBuilder.php:192
+msgid "Latest Video"
+msgstr "Dernière vidéo"
+
+#: inc/Common/Customizer/FeedBuilder.php:197
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:139
+msgid "Carousel"
+msgstr "Carrousel"
+
+#: inc/Common/Customizer/FeedBuilder.php:202
+msgid "Showcase Carousel"
+msgstr "Carrousel de présentation"
+
+#: inc/Common/Customizer/FeedBuilder.php:230
+msgid "My Timeline"
+msgstr "Ma chronologie"
+
+#: inc/Common/Customizer/FeedBuilder.php:231
+msgid "Create a feed from your own TikTok posts"
+msgstr "Créez un flux à partir de vos propres publications TikTok"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:27
+msgid "Customize"
+msgstr "Personnaliser"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:42
+msgid "Template"
+msgstr "Modèle"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:47
+msgid "Layout"
+msgstr "Mise en page"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:54
+msgid "Header"
+msgstr "En-tête"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:60
+msgid "TikToks"
+msgstr "TikToks"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:66
+msgid "Video Player Experience"
+msgstr "Expérience utilisateur du lecteur vidéo"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:72
+msgid "Load More Button"
+msgstr "Bouton Charger plus"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:75
+msgid "Upgrade to Pro to Load posts asynchronously with Load more button. %1$sLearn More%2$s"
+msgstr "Passez à la version Pro pour charger les publications de manière asynchrone avec le bouton Charger plus. %1$sEn savoir plus%2$s."
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:122
+msgid "Grid"
+msgstr "Grille"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:153
+msgid "Spacing"
+msgstr "Espacement"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:158
+msgid "Vertical"
+msgstr "Vertical"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:166
+msgid "Horizontal"
+msgstr "Horizontal"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:183
+msgid "Number of posts to display"
+msgstr "Nombre de publications à afficher"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:217
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:255
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:302
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:395
+msgid "Columns"
+msgstr "Colonnes"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:293
+msgid "Columns and Rows"
+msgstr "Colonnes et lignes"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:332
+msgid "Pagination"
+msgstr "Pagination"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:345
+msgid "Loop Type"
+msgstr "Type de boucle"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:347
+msgid "Rewind"
+msgstr "Retour rapide"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:348
+msgid "Infinity"
+msgstr "Infini"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:357
+msgid "Interval Time"
+msgstr "Intervalle de temps"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:363
+msgid "Show Navigation Arrows"
+msgstr "Afficher les flèches de navigation"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:373
+msgid "Show Pagination"
+msgstr "Afficher la pagination"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:383
+msgid "Enable Autoplay"
+msgstr "Activer la lecture auto"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:433
+msgid "Content Length"
+msgstr "Longueur du contenu"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:438
+msgid "characters"
+msgstr "caractères"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:459
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1177
+msgid "Enable"
+msgstr "Activer"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:469
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:521
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1043
+msgid "Name"
+msgstr "Nom"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:476
+msgid "Profile Picture"
+msgstr "Image de profil"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:483
+msgid "Size"
+msgstr "Taille"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:490
+msgid "Small"
+msgstr "Petite"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:491
+msgid "Medium"
+msgstr "Moyenne"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:492
+msgid "Large"
+msgstr "Large"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:500
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:556
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:612
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:669
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:747
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:839
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1015
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1110
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1280
+msgid "Element Spacing"
+msgstr "Espacement des éléments"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:506
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:562
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:618
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:675
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:753
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:845
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:878
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1021
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1116
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1290
+msgid "Padding"
+msgstr "Marge interne"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:513
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:569
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:625
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:682
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:760
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:852
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:888
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1123
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1301
+msgid "Margin"
+msgstr "Marge"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:528
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:548
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:584
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:604
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:641
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:661
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:775
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:804
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1102
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1187
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1230
+msgid "Text"
+msgstr "Texte"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:540
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:596
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:653
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:722
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:796
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:960
+msgid "Colors"
+msgstr "Couleurs"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:577
+msgid "Username"
+msgstr "Nom d’utilisateur/utilisatrice"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:633
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:710
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:739
+msgid "Description"
+msgstr "Description"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:690
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:698
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:730
+msgid "Stats"
+msgstr "Statistiques"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:768
+msgid "Button"
+msgstr "Bouton"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:781
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1199
+msgid "Content"
+msgstr "Contenu"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:813
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1243
+msgid "Background"
+msgstr "Arrière-plan"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:822
+msgid "Text/ Hover"
+msgstr "Texte/Survol"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:831
+msgid "Bg/ Hover"
+msgstr "Arr.-plan/Survol"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:866
+msgid "Header Spacing"
+msgstr "Espacement de l’en-tête"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:909
+msgid "TikTok Style"
+msgstr "Style TikTok"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:917
+msgid "Edit Individual Elements"
+msgstr "Modifier des éléments individuels"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:918
+msgid "Hide or Show individual elements of a post or edit their options"
+msgstr "Masquer ou afficher des éléments individuels d’une publication ou modifier leurs options."
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:944
+msgid "Regular"
+msgstr "Normal"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:949
+msgid "Boxed"
+msgstr "Encadré"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:965
+msgid "Background Color"
+msgstr "Couleur d’arrière-plan"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:980
+msgid "Properties"
+msgstr "Propriétés"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:988
+msgid "Box Shadow"
+msgstr "Ombre de la boîte"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:997
+msgid "Corner Radius"
+msgstr "Rayon de la bordure"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1003
+msgid "Stroke"
+msgstr "Trait"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1047
+msgid "Author Info"
+msgstr "Infos sur l’auteur/autrice"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1053
+msgid "Video Thumbnail"
+msgstr "Miniature vidéo"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1058
+msgid "Play Icon"
+msgstr "Icône de lecture"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1063
+msgid "Views"
+msgstr "Vues"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1069
+msgid "Likes"
+msgstr "Les plus aimées"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1075
+msgid "Caption"
+msgstr "Légende"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1083
+msgid "Font"
+msgstr "Police"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1095
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1218
+msgid "Color"
+msgstr "Couleur"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1151
+msgid "In a lightbox"
+msgstr "Dans une visionneuse"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1256
+msgid "Text / Hover"
+msgstr "Texte/Survol"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:1269
+msgid "Bg / Hover"
+msgstr "Arr.-plan/Survol"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:43
+msgid "Sources"
+msgstr "Sources"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:48
+msgid "Sort"
+msgstr "Trier"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:54
+msgid "Filters"
+msgstr "Filtres"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:58
+msgid "Upgrade to Pro to apply filters to your TikTok Feeds. %1$sLearn More%2$s"
+msgstr "Passez à la version Pro pour appliquer des filtres à vos flux TikTok. %1$sEn savoir plus%2$s"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:101
+msgid "Recent First"
+msgstr "Plus récents"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:102
+msgid "Oldest First"
+msgstr "Plus anciens"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:106
+msgid "Most Views First"
+msgstr "Plus de vues"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:107
+msgid "Most Likes First"
+msgstr "Plus de j’aime"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:119
+msgid "Sort By"
+msgstr "Trier par"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:143
+msgid "Randomize"
+msgstr "Aléatoire"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:144
+msgid "This will disable “By date” and “By views/likes” and randomly choose among the filtered feeds"
+msgstr "Les filtres « Par date » et « Par vues/j’aime » seront désactivés et les flux filtrés seront choisis aléatoirement."
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:168
+msgid "By Words"
+msgstr "Par mots"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:176
+#: inc/Common/Customizer/Tabs/SettingsTab.php:177
+#: inc/Common/Customizer/Tabs/SettingsTab.php:187
+msgid "Only show posts containing"
+msgstr "Afficher uniquement les publications contenant"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:178
+msgid "Add words here to only show posts containing these words"
+msgstr "Ajouter des mots dans ce champ pour n’afficher que les publications contenant ces mots"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:186
+msgid "Do not show posts containing"
+msgstr "Ne pas afficher les publications contenant"
+
+#: inc/Common/Customizer/Tabs/SettingsTab.php:188
+msgid "Add words here to hide any posts containing these words"
+msgstr "Ajoutez des mots ici pour masquer toutes les publications contenant ces mots"
+
+#: inc/Common/Feed.php:120 inc/Common/Services/ShortcodeService.php:40
+msgid "No feed with the ID %d found."
+msgstr "Aucun flux avec l’ID %d n’a été trouvé."
+
+#: inc/Common/Feed.php:121 inc/Common/Services/ShortcodeService.php:41
+msgid "Please go to %1$sTikTok Feeds%2$s settings page to create a feed."
+msgstr "Allez sur la page de réglages de %1$sTikTok Feeds%2$s pour créer un flux."
+
+#: inc/Common/Feed.php:128 inc/Common/Feed.php:755
+msgid "No sources available for this feed."
+msgstr "Aucune source disponible pour ce flux."
+
+#: inc/Common/Feed.php:129 inc/Common/Feed.php:756
+msgid "Please go to %1$sTikTok Feeds%2$s settings page and add sources for this feed to use."
+msgstr "Allez sur la page de réglages de %1$sTikTok Feeds%2$s et ajoutez des sources que ce flux doit utiliser."
+
+#: inc/Common/Feed.php:290
+msgid "Source Error."
+msgstr "Erreur source."
+
+#: inc/Common/Feed.php:291
+msgid "This is a saved backup feed. Please try reconnecting the source."
+msgstr "Il s’agit d’un flux de sauvegarde enregistré. Essayez de reconnecter la source."
+
+#: inc/Common/Feed.php:302 inc/Common/Feed.php:309 inc/Common/Feed.php:314
+msgid "No posts found."
+msgstr "Aucune publication trouvée."
+
+#: inc/Common/Feed.php:303
+msgid "There were no posts that fit your filters. Please check your filters and try again."
+msgstr "Aucune publication ne correspondait à vos filtres. Veuillez vérifier vos filtres et réessayer."
+
+#: inc/Common/Feed.php:310
+msgid "There is no saved backup feed. Please try reconnecting the source."
+msgstr "Aucun flux de sauvegarde n’est enregistré. Essayez de reconnecter la source."
+
+#: inc/Common/Feed.php:315
+msgid "There were no posts found for the sources selected. Please make sure there are posts for the sources added and try again."
+msgstr "Aucune publication n’a été trouvée pour les sources sélectionnées. Veuillez vous assurer qu’il y a des publications pour les sources ajoutées et essayez à nouveau."
+
+#: inc/Common/Services/AjaxHandlerService.php:265
+msgid "Supports only JSON file"
+msgstr "Prend en charge uniquement le fichier JSON"
+
+#: inc/Common/Services/AjaxHandlerService.php:270
+#: inc/Common/Services/AjaxHandlerService.php:275
+msgid "Don't have file, Please try again"
+msgstr "Fichier introuvable, veuillez réessayer"
+
+#: inc/Common/Services/AjaxHandlerService.php:280
+msgid "No feed source is included. Cannot upload feed."
+msgstr "Aucune source de flux n’est incluse. Impossible de téléverser le flux."
+
+#: inc/Common/Services/AjaxHandlerService.php:304
+msgid "Feed settings imported successfully"
+msgstr "Les réglages du flux ont bien été importés."
+
+#: inc/Common/Services/AjaxHandlerService.php:308
+msgid "Could not import feed, Please try again"
+msgstr "Impossible d’importer le flux, veuillez réessayer"
+
+#: inc/Common/Services/ShortcodeService.php:106
+msgid "This error message is only visible to WordPress admins."
+msgstr "Ce message d’erreur n’est visible que pour les administrateurs/administratrices de WordPress."
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:24
+msgid "Advanced"
+msgstr "Avancé"
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:41
+msgid "Optimize Images"
+msgstr "Optimiser les images"
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:42
+msgid "It will create multiple local copies of images in different sizes and use smallest size based on where the image is being displayed"
+msgstr "Cette option permet de créer plusieurs copies locales d’images de différentes tailles et d’utiliser la plus petite taille en fonction de l’endroit où l’image est affichée."
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:49
+msgid "Reset"
+msgstr "Réinitialiser"
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:54
+msgid "Images Cleared"
+msgstr "Images effacées"
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:63
+msgid "Usage Tracking"
+msgstr "Suivi de l’utilisation"
+
+#: inc/Common/Settings/Tabs/AdvancedTab.php:65
+msgid "This helps us prevent plugin and theme conflicts by sending a report in the background once per week about your settings and relevant site stats. It does not send sensitive information like access tokens, email addresses, or user info. This will not affect your site performace as well. %1$sLearn More%2$s"
+msgstr "Cette option nous aide à prévenir les conflits d’extensions et de thèmes en envoyant un rapport en arrière-plan une fois par semaine sur vos réglages et les statistiques pertinentes du site. Aucune information sensible n’est envoyée (exemple : jetons d’accès, adresses e-mail ou informations utilisateur/utilisatrice). Elle n’affectera pas non plus les performances de votre site. %1$sEn savoir plus%2$s"
+
+#: inc/Common/Settings/Tabs/FeedsTab.php:24
+msgid "Feeds"
+msgstr "Flux"
+
+#: inc/Common/Settings/Tabs/FeedsTab.php:40
+msgid "Caching"
+msgstr "Mise en cache"
+
+#: inc/Common/Settings/Tabs/FeedsTab.php:45
+msgid "GDPR"
+msgstr "RGPD"
+
+#: inc/Common/Settings/Tabs/FeedsTab.php:47
+msgid "We will automatically enable GDPR compliance if we detect a supported privacy consent plugin. %1$sLearn more%2$s."
+msgstr "Nous activerons automatiquement la conformité RGPD si nous détectons une extension de consentement de confidentialité prise en charge. %1$sEn savoir plus%2$s."
+
+#: inc/Common/Settings/Tabs/FeedsTab.php:52
+msgid "Automatic"
+msgstr "Automatique"
+
+#: inc/Common/Services/NotificationService.php:535
+#: inc/Common/Settings/Tabs/FeedsTab.php:53
+msgid "Yes"
+msgstr "Oui"
+
+#: inc/Common/Services/NotificationService.php:537
+#: inc/Common/Settings/Tabs/FeedsTab.php:54
+msgid "No"
+msgstr "Non"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:24
+msgid "General"
+msgstr "Général"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:40
+#: inc/Common/Settings/Tabs/GeneralTab.php:48
+msgid "License Key"
+msgstr "Clé de licence"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:42
+#: inc/Common/Settings/Tabs/GeneralTab.php:50
+msgid "Your license key provides access to updates and support"
+msgstr "Votre clé de licence débloque les mises à jour et le support"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:55
+msgid "Manage Sources"
+msgstr "Gérer les sources"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:56
+msgid "Add or remove connected TikTok accounts"
+msgstr "Ajouter ou supprimer des comptes TikTok connectés"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:64
+msgid "Preserve settings if plugin is removed"
+msgstr "Conserver les réglages si l’extension est retirée"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:65
+msgid "This will make sure that all of your feeds and settings are still saved even if the plugin is uninstalled"
+msgstr "Lorsque cette option est activée, tous vos flux et réglages sont toujours enregistrés, même si l’extension est désinstallée."
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:74
+msgid "Import Feed Settings"
+msgstr "Importer les réglages des flux"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:76
+msgid "You will need a JSON file previously exported from the TikTok Feeds Plugin"
+msgstr "Vous aurez besoin d’un fichier JSON exporté au préalable depuis l’extension TikTok Feeds."
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:79
+msgid "Export Feed Settings"
+msgstr "Exporter les réglages des flux"
+
+#: inc/Common/Settings/Tabs/GeneralTab.php:81
+msgid "Export settings for one or more of your feeds"
+msgstr "Exportez les réglages d’un ou de plusieurs de vos flux."
+
+#: inc/Common/Utils/SbttFunctions.php:129
+msgid "Follow on TikTok"
+msgstr "Suivre sur TikTok"
+
+#: inc/Common/Utils/SbttFunctions.php:175
+msgid "Load More"
+msgstr "Afficher plus"
+
+#: inc/Common/Utils/SbttFunctions.php:443
+#: inc/Common/Utils/SbttFunctions.php:447
+msgid "Invalid Access Token. Please reconnect the source."
+msgstr "Jeton d’accès non valide. Veuillez reconnecter la source."
+
+#: inc/Common/Utils/SbttFunctions.php:444
+#: inc/Common/Utils/SbttFunctions.php:448
+msgid "Please go to %1$sTikTok Feeds%2$s settings page to reconnect the source."
+msgstr "Veuillez vous rendre sur la page des réglages %1$sTikTok Feeds%2$s pour reconnecter la source."
+
+#: inc/Common/Utils/Utils.php:655
+msgid "Upgrade to TikTok Pro plans to add multiple feeds"
+msgstr "Passer aux offres TikTok Pro pour ajouter plusieurs flux"
+
+#: inc/Common/Utils/Utils.php:656
+msgid "Boost leads and conversions by displaying custom feeds all over your website to show fresh, relevant content."
+msgstr "Affichez des flux personnalisés sur l’ensemble de votre site afin d’augmenter le nombre de prospects et de conversions et de diffuser du contenu pertinent et actuel."
+
+#: inc/Common/Utils/Utils.php:660
+msgid "Upgrade to TikTok Pro plans to add multiple sources"
+msgstr "Passez aux offres TikTok Pro pour ajouter plusieurs sources"
+
+#: inc/Common/Utils/Utils.php:661
+msgid "Do you have multiple TikTok accounts? Use them all in different feeds or combine them into one."
+msgstr "Vous avez plusieurs comptes TikTok ? Utilisez-les tous dans différents flux ou combinez-les en un seul."
+
+#: inc/Common/Utils/Utils.php:665
+msgid "Upgrade to TikTok Pro plans to update your feed more often"
+msgstr "Passez aux offres TikTok Pro pour mettre à jour votre flux plus souvent"
+
+#: inc/Common/Utils/Utils.php:666
+msgid "Keep your feed content ultra-fresh with more frequent feed updates in the Pro version."
+msgstr "Proposez un flux toujours d’actualité en bénéficiant de mises à jour plus fréquentes avec la version Pro."
+
+#: inc/Common/Utils/Utils.php:670
+msgid "Upgrade to TikTok Pro to add load more functionality"
+msgstr "Passer à TikTok Pro pour ajouter la fonctionnalité Charger plus"
+
+#: inc/Common/Utils/Utils.php:671
+msgid "Add a Load More button to your feed to allow users to load more posts."
+msgstr "Ajoutez un bouton Charger plus à votre flux pour permettre aux internautes de charger plus de publications."
+
+#: inc/Common/Utils/Utils.php:675 inc/Common/Utils/Utils.php:680
+#: inc/Common/Utils/Utils.php:685 inc/Common/Utils/Utils.php:690
+msgid "Upgrade to TikTok Pro plans to get advanced layouts"
+msgstr "Passez aux offres TikTok Pro pour obtenir des mises en page avancées"
+
+#: inc/Common/Utils/Utils.php:676 inc/Common/Utils/Utils.php:681
+#: inc/Common/Utils/Utils.php:686 inc/Common/Utils/Utils.php:691
+msgid "Display your videos in a list or carousel to provide your content wherever it fits best on your site."
+msgstr "Affichez vos vidéos sous forme de liste ou de carrousel pour insérer votre contenu au meilleur emplacement sur votre site."
+
+#: inc/Common/Utils/Utils.php:695 inc/Common/Utils/Utils.php:700
+msgid "Upgrade to TikTok Pro plans to get one-click templates!"
+msgstr "Passez aux offres TikTok Pro pour bénéficier des modèles en un clic !"
+
+#: inc/Common/Utils/Utils.php:696 inc/Common/Utils/Utils.php:701
+msgid "Choose from our expertly designed templates to make feed creation simple no matter the situation."
+msgstr "Choisissez parmi nos modèles conçus par des expert·es pour simplifier la création de flux quelle que soit la situation."
+
+#: inc/Common/Utils/Utils.php:705
+msgid "Upgrade to TikTok Pro plans to display stats & description."
+msgstr "Passez aux offres TikTok Pro pour afficher les statistiques et la description."
+
+#: inc/Common/Utils/Utils.php:706
+msgid "Provide rich content to boost visitor engagement and encourage them to follow your account."
+msgstr "Fournissez un contenu riche pour renforcer l’engagement des internautes et les encourager à suivre votre compte."
+
+#: inc/Common/Utils/Utils.php:710
+msgid "Upgrade to TikTok Pro plans for more video elements"
+msgstr "Passez aux offres TikTok Pro pour obtenir plus d’éléments vidéo"
+
+#: inc/Common/Utils/Utils.php:711
+msgid "Show descriptions, view and like counts and author info to provide more rich content to engage your visitors."
+msgstr "Affichez les descriptions, le nombre de vues et de mentions j’aime ainsi que les informations sur l’auteur/autrice afin de fournir un contenu plus riche pour attirer les internautes."
+
+#: inc/Common/Utils/Utils.php:715
+msgid "Upgrade to TikTok Pro plans for custom sorting"
+msgstr "Passez aux offres TikTok Pro pour personnaliser le tri"
+
+#: inc/Common/Utils/Utils.php:716
+msgid "Sort videos randomly for a unique visitor experience or show off your most viewed or most liked videos first."
+msgstr "Utilisez la fonctionnalité de tri aléatoire pour proposer une expérience unique aux internautes ou affichez en premier les vidéos qui ont le plus de vues ou de mentions j’aime."
+
+#: inc/Common/Utils/Utils.php:720
+msgid "Upgrade to TikTok Pro plans to get word & hashtag filters"
+msgstr "Passez aux offres TikTok Pro pour obtenir des filtres de mots et de hashtags"
+
+#: inc/Common/Utils/Utils.php:721
+msgid "Filter by words and hashtags found in the caption. Curate content to target specific kinds of visitors."
+msgstr "Filtrez par mots et hashtags trouvés dans la légende. Personnalisez le contenu pour cibler des profils spécifiques d’internautes."
+
+#: inc/Common/Utils/Utils.php:725
+msgid "Upgrade to TikTok Pro plans to sort by likes & views"
+msgstr "Passez aux offres TikTok Pro pour trier par mentions j’aime et vues"
+
+#: inc/Common/Utils/Utils.php:726
+msgid "Show off your best content first to boost conversions of site visitors to TikTok followers."
+msgstr "Affichez d’abord votre meilleur contenu pour convertir encore plus d’internautes sur votre site en abonnés TikTok."
+
+#: inc/Common/Utils/Utils.php:730
+msgid "Upgrade to TikTok Pro plans to get card layouts!"
+msgstr "Passez aux offres TikTok Pro pour obtenir les mises en page en cartes !"
+
+#: inc/Common/Utils/Utils.php:731
+msgid "Display your videos in an attractive, modern card layout. Help your content standout to engage visitors."
+msgstr "Affichez vos vidéos avec une mise en page en cartes attrayante et moderne. Aidez votre contenu à se démarquer pour attirer les internautes."
+
+#: inc/Common/Utils/Utils.php:768
+msgid "Sort by likes or views"
+msgstr "Trier par mentions j’aime ou vues"
+
+#: inc/Common/Utils/Utils.php:769
+msgid "Show most liked or most viewed videos first with a TikTok Pro plan"
+msgstr "Affichez d’abord les vidéos le plus de mentions j’aime ou de vues en optant pour une offre TikTok Pro"
+
+#: inc/Common/Utils/Utils.php:798
+msgid "About Us"
+msgstr "À propos"
+
+#: inc/Common/Utils/Utils.php:799
+msgid "Support"
+msgstr "Support"
+
+#: inc/Common/Customizer/Tabs/CustomizeTab.php:133
+msgid "Masonry"
+msgstr "Masonry"

@@ -1,0 +1,25 @@
+{
+  "files": {
+    "main.css": "/static/css/main.css",
+    "main.js": "/static/js/main.js",
+    "vendor-antd.css": "/static/css/vendor-antd.css",
+    "vendor-antd.js": "/static/js/vendor-antd.js",
+    "vendor-common.js": "/static/js/vendor-common.js",
+    "vendor-recharts.js": "/static/js/vendor-recharts.js",
+    "vendor-react.js": "/static/js/vendor-react.js",
+    "vendor-moment-js.js": "/static/js/vendor-moment-js.js",
+    "vendor-emoji-picker.js": "/static/js/vendor-emoji-picker.js",
+    "index.html": "/index.html"
+  },
+  "entrypoints": [
+    "static/css/vendor-antd.css",
+    "static/js/vendor-antd.js",
+    "static/js/vendor-common.js",
+    "static/js/vendor-recharts.js",
+    "static/js/vendor-react.js",
+    "static/js/vendor-moment-js.js",
+    "static/js/vendor-emoji-picker.js",
+    "static/css/main.css",
+    "static/js/main.js"
+  ]
+}

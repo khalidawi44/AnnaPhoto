@@ -1,0 +1,85 @@
+# ============================================================
+# WordPress — secrets & config
+# ============================================================
+public_html/wp-config.php
+public_html/.htpasswd
+public_html/.user.ini
+public_html/php.ini
+*.env
+.env
+.env.*
+
+# Garde un sample versionné (sans secrets) si tu veux
+!public_html/wp-config-sample.php
+
+# ============================================================
+# WordPress core (souvent inutile à versionner — tu peux
+# commenter ces lignes si tu veux versionner le core aussi)
+# ============================================================
+# public_html/wp-admin/
+# public_html/wp-includes/
+
+# ============================================================
+# Médias & contenu lourd / dynamique
+# ============================================================
+public_html/wp-content/uploads/
+public_html/wp-content/upgrade/
+public_html/wp-content/upgrade-temp-backup/
+public_html/wp-content/cache/
+public_html/wp-content/backup*/
+public_html/wp-content/backups/
+public_html/wp-content/wflogs/
+public_html/wp-content/ai1wm-backups/
+public_html/wp-content/updraft/
+public_html/wp-content/litespeed/
+public_html/wp-content/et-cache/
+public_html/wp-content/wp-rocket-config/
+
+# NextGEN Gallery — galleries dynamiques (les images, pas le plugin)
+public_html/wp-content/ngg/
+public_html/wp-content/gallery/
+
+# ============================================================
+# Logs & debug
+# ============================================================
+*.log
+error_log
+debug.log
+public_html/wp-content/debug.log
+public_html/wp-content/object-cache.php
+public_html/wp-content/advanced-cache.php
+
+# ============================================================
+# Backups & archives
+# ============================================================
+*.bk
+*.bak
+*.backup
+*.old
+*.orig
+*.sql
+*.sql.gz
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+.htaccess.bk
+
+# ============================================================
+# Système / éditeurs
+# ============================================================
+.DS_Store
+Thumbs.db
+desktop.ini
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# ============================================================
+# Dossiers privés hébergeur
+# ============================================================
+public_html/.private/
