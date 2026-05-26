@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anna Photo — Prospection
  * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces, bookmarklet "capturer une annonce" en 1 clic, import auto via alertes mail IMAP (Leboncoin, Mariages.net), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels.
- * Version: 2.4.0
+ * Version: 2.4.1
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -562,14 +562,68 @@ function ann_imap_run() {
 add_action( ANN_CRON_IMAP, 'ann_imap_run' );
 
 /* ===========================================================================
- * Google Alerts : URL pre-remplie pour creer une alerte
+ * Google Alerts : URL pre-remplie avec requete optimisee par prestation.
+ * Strategie : phrases EXACTES que seuls les demandeurs ecrivent + sites
+ * cibles + exclusions de termes de pros (portfolio, tarif, mes-tarifs...).
  * ========================================================================= */
+function ann_google_alert_queries() {
+	// Pour chaque prestation : 2-4 phrases exactes typiques d'une demande.
+	return array(
+		'mariage' => array(
+			'"cherche photographe mariage"',
+			'"recherche photographe mariage"',
+			'"je cherche un photographe pour mon mariage"',
+			'"besoin d\'un photographe pour mon mariage"',
+		),
+		'couple' => array(
+			'"cherche photographe EVJF"',
+			'"recherche photographe EVJF"',
+			'"cherche photographe couple"',
+			'"photographe pour EVJF"',
+		),
+		'famille' => array(
+			'"cherche photographe famille"',
+			'"recherche photographe famille"',
+			'"cherche photographe enfants"',
+			'"shooting famille cherche"',
+		),
+		'grossesse' => array(
+			'"cherche photographe grossesse"',
+			'"recherche photographe maternite"',
+			'"shooting grossesse cherche"',
+			'"cherche photographe pour ma grossesse"',
+		),
+		'portrait' => array(
+			'"cherche photographe pour book"',
+			'"recherche photographe portrait"',
+			'"besoin book photo"',
+			'"cherche photographe pour shooting"',
+		),
+		'evenement' => array(
+			'"cherche photographe evenement"',
+			'"cherche photographe pour anniversaire"',
+			'"recherche photographe pour soiree"',
+			'"besoin photographe pour bapteme"',
+		),
+		'autre' => array(
+			'"cherche un photographe"',
+			'"recherche un photographe"',
+		),
+	);
+}
 function ann_google_alert_url( $prestation, $cp = '' ) {
-	$kw = ann_keywords( $prestation );
-	$q  = isset( $kw[0] ) ? $kw[0] : 'cherche photographe';
-	// Requete : site:leboncoin.fr OR site:mariages.net OR site:vivastreet.com "cherche photographe XYZ" [ville/cp]
-	$query = '(site:leboncoin.fr OR site:mariages.net OR site:vivastreet.com) "' . $q . '"';
+	$all = ann_google_alert_queries();
+	$phrases = isset( $all[ $prestation ] ) ? $all[ $prestation ] : $all['autre'];
+	// OR entre les phrases exactes
+	$or_phrases = '(' . implode( ' OR ', $phrases ) . ')';
+	// Restriction aux sites pertinents
+	$sites = '(site:leboncoin.fr OR site:mariages.net OR site:vivastreet.com OR site:jemepropose.com)';
+	// Exclusions des pages de photographes pros (portfolio, tarifs, etc.)
+	$excl = '-inurl:portfolio -inurl:mes-tarifs -intitle:portfolio -"mes tarifs" -"contactez-moi" -"photographe professionnel"';
+
+	$query = $or_phrases . ' ' . $sites;
 	if ( '' !== $cp ) { $query .= ' ' . $cp; }
+	$query .= ' ' . $excl;
 	return 'https://www.google.com/alerts?q=' . rawurlencode( $query );
 }
 
@@ -1827,8 +1881,10 @@ function ann_render_settings_page() {
 		<!-- GOOGLE ALERTS -->
 		<div class="ann-card" style="margin-top:24px;background:#fff;border:2px solid #fde68a;">
 			<h2 style="margin-top:0;">🔔 Recevoir les annonces directement (Google Alerts)</h2>
-			<p><strong>Le moyen le plus efficace pour ne plus rien rater :</strong> Google surveille en permanence Leboncoin, Mariages.net, Vivastreet et t'envoie un mail des qu'une nouvelle annonce correspondant a tes mots-cles est publiee. Le mail est lu par le plugin IMAP -> annonce ajoutee au CRM + notif Telegram avec le lien direct.</p>
-			<p style="color:#64748b;font-size:13px;">⚠️ Necessite : 1) un compte Google (gmail), 2) l'IMAP configure plus bas pour qu'on lise les mails.</p>
+			<p><strong>Le moyen le plus efficace pour ne plus rien rater :</strong> Google surveille en permanence Leboncoin, Mariages.net, Vivastreet, Jemepropose et t'envoie un mail des qu'une nouvelle annonce correspondant a tes mots-cles est publiee. Le mail est lu par le plugin IMAP -> annonce ajoutee au CRM + notif Telegram avec le lien direct.</p>
+			<p style="color:#475569;font-size:13px;background:#f0f9ff;padding:10px;border-radius:8px;border-left:3px solid #3b82f6;">
+				ℹ️ <strong>Pas besoin de creer un Gmail.</strong> Tu peux utiliser ton compte Google actuel (celui de Site Kit) ou meme aucun compte : Google Alerts accepte n'importe quel email — saisis simplement <code>prospects@annaphoto.eu</code> dans le champ « Envoyer a » et confirme via le mail que Google envoie.
+			</p>
 
 			<p style="font-weight:600;margin-top:14px;">📌 1 clic par prestation a surveiller :</p>
 			<div style="display:flex;flex-wrap:wrap;gap:8px;margin:10px 0;">
@@ -1852,12 +1908,12 @@ function ann_render_settings_page() {
 				<summary style="cursor:pointer;color:#475569;font-weight:600;">📖 Comment ca marche (5 etapes)</summary>
 				<ol style="margin:10px 0 0 18px;font-size:13px;line-height:1.7;">
 					<li>Clique sur une prestation ci-dessus (ex : 💍 Mariage)</li>
-					<li>Google Alerts s'ouvre avec la requete deja remplie (genre : <code>(site:leboncoin.fr OR site:mariages.net) "cherche photographe mariage" 44000</code>)</li>
-					<li>Dans <strong>« Envoyer a »</strong> : choisis ton email Hostinger (<code>prospects@annaphoto.eu</code>) — pas ton gmail !</li>
-					<li>Dans <strong>« Frequence »</strong> : choisis <em>« Au fur et a mesure »</em> (pour recevoir des que ca arrive)</li>
-					<li>Clic <strong>« Creer l'alerte »</strong>. Repete pour chaque prestation.</li>
+					<li>Google Alerts s'ouvre avec une requete <strong>tres ciblee</strong> (phrases exactes du genre « cherche photographe mariage », sites Leboncoin/Mariages.net/Vivastreet, exclusions des pages de photographes pros)</li>
+					<li>Dans <strong>« Envoyer a »</strong> : choisis <code>prospects@annaphoto.eu</code> (l'email de l'import IMAP) — <strong>pas ton gmail perso !</strong></li>
+					<li>Dans <strong>« Frequence »</strong> : <em>« Au fur et a mesure »</em> (alerte instantanee). Dans <strong>« Quantite »</strong> : <em>« Meilleurs resultats »</em> (filtre encore plus le bruit).</li>
+					<li>Clic <strong>« Creer l'alerte »</strong>. Repete pour chaque prestation qui t'interesse.</li>
 				</ol>
-				<p style="margin:10px 0 0;color:#64748b;font-size:12px;">💡 Apres ca, des qu'un mail d'alerte arrive dans <code>prospects@annaphoto.eu</code>, le plugin l'importe automatiquement et t'envoie le lien direct sur Telegram.</p>
+				<p style="margin:10px 0 0;color:#64748b;font-size:12px;">💡 Si tu recois encore du bruit apres ca, tu peux <strong>editer ta requete</strong> directement sur google.com/alerts (icone crayon a cote de l'alerte) et ajouter des exclusions du genre <code>-portfolio</code> ou <code>-"mes prestations"</code>.</p>
 			</details>
 		</div>
 
