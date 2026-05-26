@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anna Photo — Prospection
  * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces, bookmarklet "capturer une annonce" en 1 clic, import auto via alertes mail IMAP (Leboncoin, Mariages.net), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels.
- * Version: 2.4.1
+ * Version: 2.4.2
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -443,7 +443,23 @@ function ann_imap_connect() {
 	return $s;
 }
 /**
+ * Resout une URL Google redirect (https://www.google.com/url?q=REAL_URL&sa=...)
+ * vers l'URL reelle. Sinon retourne l'URL telle quelle.
+ */
+function ann_resolve_google_redirect( $url ) {
+	if ( false === stripos( $url, 'google.com/url' ) ) { return $url; }
+	$parsed = wp_parse_url( $url );
+	if ( empty( $parsed['query'] ) ) { return $url; }
+	parse_str( $parsed['query'], $args );
+	if ( ! empty( $args['q'] ) ) { return $args['q']; }
+	if ( ! empty( $args['url'] ) ) { return $args['url']; }
+	return $url;
+}
+
+/**
  * Extrait les annonces (URLs + titre) du corps d'un mail d'alerte.
+ * Detecte Leboncoin, Mariages.net, Vivastreet, Jemepropose.
+ * Gere les redirections Google Alerts (google.com/url?q=...).
  */
 function ann_imap_parse_listings( $body, $subject = '' ) {
 	$listings = array();
@@ -453,34 +469,41 @@ function ann_imap_parse_listings( $body, $subject = '' ) {
 		if ( false !== stripos( $decoded, 'http' ) ) { $body = $decoded; }
 		else { $b64 = base64_decode( $body, true ); if ( false !== $b64 && false !== stripos( $b64, 'http' ) ) { $body = $b64; } }
 	}
-	// Leboncoin
-	if ( preg_match_all( '#https?://(?:www\.)?leboncoin\.fr/(?:ad|vi)/[^\s"\'<>\)\]]+#i', $body, $m ) ) {
-		foreach ( array_unique( $m[0] ) as $url ) {
-			$listings[] = array(
-				'url'    => strtok( $url, '?#' ),
-				'source' => 'leboncoin',
-				'title'  => $subject,
-			);
+
+	$patterns = array(
+		'leboncoin' => '#https?://(?:www\.)?leboncoin\.fr/(?:ad|vi)/[^\s"\'<>\)\]]+#i',
+		'mariages'  => '#https?://(?:www\.)?mariages\.net/[a-z0-9_/\-]+#i',
+		'viva'      => '#https?://(?:www\.)?vivastreet\.[a-z\.]+/[^\s"\'<>\)\]]+#i',
+		'jemepro'   => '#https?://(?:www\.)?jemepropose\.com/[^\s"\'<>\)\]]+#i',
+	);
+
+	// Extraire TOUTES les urls Google redirect, les decoder, puis les ajouter au body pour matching
+	if ( preg_match_all( '#https?://www\.google\.com/url\?[^\s"\'<>\)\]]+#i', $body, $gm ) ) {
+		foreach ( $gm[0] as $g_url ) {
+			$real = ann_resolve_google_redirect( html_entity_decode( $g_url ) );
+			if ( $real && $real !== $g_url ) { $body .= "\n" . $real; }
 		}
 	}
-	// Mariages.net
-	if ( preg_match_all( '#https?://(?:www\.)?mariages\.net/[a-z0-9_/\-]+#i', $body, $m ) ) {
-		foreach ( array_unique( $m[0] ) as $url ) {
-			$listings[] = array(
-				'url'    => strtok( $url, '?#' ),
-				'source' => 'autre',
-				'title'  => $subject,
-			);
-		}
-	}
-	// Vivastreet
-	if ( preg_match_all( '#https?://(?:www\.)?vivastreet\.com/[^\s"\'<>\)\]]+#i', $body, $m ) ) {
-		foreach ( array_unique( $m[0] ) as $url ) {
-			$listings[] = array(
-				'url'    => strtok( $url, '?#' ),
-				'source' => 'autre',
-				'title'  => $subject,
-			);
+
+	$source_map = array(
+		'leboncoin' => 'leboncoin',
+		'mariages'  => 'autre',
+		'viva'      => 'autre',
+		'jemepro'   => 'autre',
+	);
+	$seen = array();
+	foreach ( $patterns as $key => $regex ) {
+		if ( preg_match_all( $regex, $body, $m ) ) {
+			foreach ( array_unique( $m[0] ) as $url ) {
+				$clean = strtok( $url, '?#' );
+				if ( isset( $seen[ $clean ] ) ) { continue; }
+				$seen[ $clean ] = 1;
+				$listings[] = array(
+					'url'    => $clean,
+					'source' => $source_map[ $key ],
+					'title'  => $subject,
+				);
+			}
 		}
 	}
 	return $listings;
@@ -614,16 +637,10 @@ function ann_google_alert_queries() {
 function ann_google_alert_url( $prestation, $cp = '' ) {
 	$all = ann_google_alert_queries();
 	$phrases = isset( $all[ $prestation ] ) ? $all[ $prestation ] : $all['autre'];
-	// OR entre les phrases exactes
-	$or_phrases = '(' . implode( ' OR ', $phrases ) . ')';
-	// Restriction aux sites pertinents
-	$sites = '(site:leboncoin.fr OR site:mariages.net OR site:vivastreet.com OR site:jemepropose.com)';
-	// Exclusions des pages de photographes pros (portfolio, tarifs, etc.)
-	$excl = '-inurl:portfolio -inurl:mes-tarifs -intitle:portfolio -"mes tarifs" -"contactez-moi" -"photographe professionnel"';
-
-	$query = $or_phrases . ' ' . $sites;
-	if ( '' !== $cp ) { $query .= ' ' . $cp; }
-	$query .= ' ' . $excl;
+	// Juste les phrases exactes en OR — Google trouvera des resultats partout.
+	// Le filtrage fin est fait cote IMAP : seules les URLs Leboncoin/Mariages.net/
+	// Vivastreet/Jemepropose seront importees dans le CRM. Le reste est ignore.
+	$query = '(' . implode( ' OR ', $phrases ) . ')';
 	return 'https://www.google.com/alerts?q=' . rawurlencode( $query );
 }
 
@@ -1908,12 +1925,13 @@ function ann_render_settings_page() {
 				<summary style="cursor:pointer;color:#475569;font-weight:600;">📖 Comment ca marche (5 etapes)</summary>
 				<ol style="margin:10px 0 0 18px;font-size:13px;line-height:1.7;">
 					<li>Clique sur une prestation ci-dessus (ex : 💍 Mariage)</li>
-					<li>Google Alerts s'ouvre avec une requete <strong>tres ciblee</strong> (phrases exactes du genre « cherche photographe mariage », sites Leboncoin/Mariages.net/Vivastreet, exclusions des pages de photographes pros)</li>
+					<li>Google Alerts s'ouvre avec une requete a phrases exactes (genre <code>("cherche photographe mariage" OR "recherche photographe mariage")</code>). Google peut afficher <em>« Aucun resultat »</em> pour le moment — <strong>c'est normal</strong>, ca veut juste dire qu'aucune page deja indexee ne matche. Des qu'une nouvelle annonce sera publiee et indexee par Google, tu recevras un mail.</li>
 					<li>Dans <strong>« Envoyer a »</strong> : choisis <code>prospects@annaphoto.eu</code> (l'email de l'import IMAP) — <strong>pas ton gmail perso !</strong></li>
-					<li>Dans <strong>« Frequence »</strong> : <em>« Au fur et a mesure »</em> (alerte instantanee). Dans <strong>« Quantite »</strong> : <em>« Meilleurs resultats »</em> (filtre encore plus le bruit).</li>
+					<li>Dans <strong>« Frequence »</strong> : <em>« Au fur et a mesure »</em>. Dans <strong>« Quantite »</strong> : <em>« Tous les resultats »</em> (pour ne rien rater).</li>
 					<li>Clic <strong>« Creer l'alerte »</strong>. Repete pour chaque prestation qui t'interesse.</li>
 				</ol>
-				<p style="margin:10px 0 0;color:#64748b;font-size:12px;">💡 Si tu recois encore du bruit apres ca, tu peux <strong>editer ta requete</strong> directement sur google.com/alerts (icone crayon a cote de l'alerte) et ajouter des exclusions du genre <code>-portfolio</code> ou <code>-"mes prestations"</code>.</p>
+				<p style="margin:10px 0 0;color:#64748b;font-size:12px;">💡 Le plugin ne garde que les liens vers <strong>Leboncoin, Mariages.net, Vivastreet et Jemepropose</strong> dans les mails recus. Le reste (blogs, articles...) est ignore. Tu n'as pas a t'inquieter du bruit.</p>
+				<p style="margin:6px 0 0;color:#64748b;font-size:12px;">📝 Si tu veux ajouter un filtre lieu, edite l'alerte sur google.com/alerts et ajoute par exemple <code>Nantes</code> ou <code>"44000"</code> a la fin de la requete.</p>
 			</details>
 		</div>
 
