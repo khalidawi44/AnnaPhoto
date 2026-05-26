@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anna Photo — Prospection
  * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces, bookmarklet "capturer une annonce" en 1 clic, import auto via alertes mail IMAP (Leboncoin, Mariages.net), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels.
- * Version: 2.3.0
+ * Version: 2.3.1
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -1153,46 +1153,19 @@ function ann_render_prospects_page() {
 		<h1 class="ann-h1">📋 Prospects</h1>
 		<?php ann_notice(); ?>
 
-		<div class="ann-help">
-			<strong>Comment ca marche :</strong>
-			<ol style="margin:6px 0 0 18px;">
-				<li>Tu trouves une annonce (utilise <a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>">🎯 Trouver des annonces</a> pour les liens rapides).</li>
-				<li>Tu ajoutes le prospect : numero + lien + <strong>note descriptive</strong> (ex : "mariage juin 2025 La Baule, budget 1500").</li>
-				<li>Le message s'auto-genere selon la note. Tu cliques <span class="ann-btn-wa">WhatsApp</span> ou <span class="ann-btn-sms">SMS</span>.</li>
-			</ol>
-		</div>
-		<div class="ann-legal">⚖️ <strong>A respecter :</strong> contacte uniquement des personnes qui ont publie une annonce. Pas d'envoi automatique en masse. Si quelqu'un dit non, mets-le sur <em>Ne plus contacter</em>.</div>
-
-		<div class="ann-card">
-			<h2 style="margin-top:0;">➕ Ajouter un prospect</h2>
-			<form method="post" action="<?php echo esc_url( $post ); ?>">
-				<input type="hidden" name="action" value="ann_add">
-				<?php wp_nonce_field( 'ann_add' ); ?>
-				<div class="ann-grid-2c">
-					<div><label>Prenom</label><input type="text" name="prenom" id="ann_prenom" placeholder="Ex : Julie"></div>
-					<div><label>Telephone *</label><input type="text" name="phone" required placeholder="06 12 34 56 78"></div>
-					<div class="ann-full"><label>Lien de l'annonce</label><input type="text" name="link" placeholder="https://... (Leboncoin, Facebook, etc.)"></div>
-					<div class="ann-full"><label>📝 Note descriptive (le message s'adapte automatiquement)</label>
-						<textarea name="note" id="ann_note" rows="2" placeholder="Ex : cherche photographe mariage juin 2025 La Baule budget 1500€"></textarea>
-					</div>
-					<div><label>Prestation (auto-detectee depuis la note)</label><select name="prestation" id="ann_prestation">
-						<option value="auto">🤖 Auto (depuis la note)</option>
-						<?php foreach ( $prestations as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
-					</select></div>
-					<div><label>Source</label><select name="source">
-						<?php foreach ( $sources as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
-					</select></div>
-					<div><label>Ville</label><input type="text" name="ville" id="ann_ville" value="<?php echo esc_attr( $ville_def ); ?>"></div>
-					<div class="ann-full"><label>Message a envoyer (auto-rempli, modifiable)</label>
-						<textarea name="message" id="ann_message" rows="4"></textarea>
-						<button type="button" class="button" onclick="annRegen()" style="margin-top:6px;">🔄 Regenerer depuis la note</button>
-						<small style="color:#64748b;display:block;margin-top:4px;">Variables : <code>{prenom}</code> <code>{ville}</code> <code>{note}</code></small>
-					</div>
-				</div>
-				<p style="margin-top:14px;"><button type="submit" class="button button-primary button-hero">Ajouter</button></p>
-			</form>
+		<!-- Barre d'actions en haut : compte + raccourcis -->
+		<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:14px 0;">
+			<div style="font-size:15px;color:#475569;">
+				<strong><?php echo (int) count( $filtered ); ?></strong> prospect<?php echo count( $filtered ) > 1 ? 's' : ''; ?> affiche<?php echo count( $filtered ) > 1 ? 's' : ''; ?>
+				<?php if ( count( $list ) !== count( $filtered ) ) : ?> sur <?php echo (int) count( $list ); ?> au total<?php endif; ?>
+			</div>
+			<div style="display:flex;gap:8px;">
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="button button-primary">🎯 Trouver des annonces</a>
+				<a href="#ann-add-prospect" class="button">➕ Ajouter manuellement</a>
+			</div>
 		</div>
 
+		<!-- Filtres -->
 		<form method="get" class="ann-card" style="padding:12px 18px;">
 			<input type="hidden" name="page" value="ann-prospects">
 			<strong>Filtrer :</strong>
@@ -1210,11 +1183,15 @@ function ann_render_prospects_page() {
 			<a href="<?php echo esc_url( $base ); ?>" class="button">Reset</a>
 		</form>
 
+		<!-- LISTE EN PREMIER -->
 		<table class="ann-table">
 			<thead><tr><th>Prospect</th><th>Note</th><th>Statut</th><th>Contacter</th><th>Date</th><th></th></tr></thead>
 			<tbody>
 				<?php if ( empty( $filtered ) ) : ?>
-					<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Aucun prospect 👆 ajoute-en un.</td></tr>
+					<tr><td colspan="6" style="text-align:center;color:#64748b;padding:36px 24px;">
+						<p style="font-size:15px;margin:0 0 12px;">Aucun prospect pour le moment.</p>
+						<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="button button-primary button-hero">🎯 Chercher des annonces maintenant</a>
+					</td></tr>
 				<?php endif; ?>
 				<?php foreach ( $filtered as $p ) :
 					$pid    = isset( $p['id'] ) ? $p['id'] : '';
@@ -1274,6 +1251,41 @@ function ann_render_prospects_page() {
 				<?php endforeach; ?>
 			</tbody>
 		</table>
+
+		<!-- AJOUT MANUEL (replie par defaut, accessible via ancre #ann-add-prospect ou clic sur "Ajouter manuellement") -->
+		<details id="ann-add-prospect" class="ann-card" style="margin-top:24px;" <?php echo ! empty( $_GET['add'] ) ? 'open' : ''; ?>>
+			<summary style="cursor:pointer;font-size:16px;font-weight:600;padding:6px 0;">➕ Ajouter un prospect manuellement</summary>
+			<p style="color:#64748b;font-size:13px;margin:8px 0 14px;">💡 <strong>Astuce :</strong> utilise plutot le bookmarklet <code>📎 Capturer</code> (Reglages) ou la page <a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>">🎯 Trouver des annonces</a> pour gagner du temps.</p>
+			<form method="post" action="<?php echo esc_url( $post ); ?>">
+				<input type="hidden" name="action" value="ann_add">
+				<?php wp_nonce_field( 'ann_add' ); ?>
+				<div class="ann-grid-2c">
+					<div><label>Prenom</label><input type="text" name="prenom" id="ann_prenom" placeholder="Ex : Julie"></div>
+					<div><label>Telephone *</label><input type="text" name="phone" required placeholder="06 12 34 56 78"></div>
+					<div class="ann-full"><label>Lien de l'annonce</label><input type="text" name="link" placeholder="https://... (Leboncoin, Facebook, etc.)"></div>
+					<div class="ann-full"><label>📝 Note descriptive (le message s'adapte automatiquement)</label>
+						<textarea name="note" id="ann_note" rows="2" placeholder="Ex : cherche photographe mariage juin 2025 La Baule budget 1500€"></textarea>
+					</div>
+					<div><label>Prestation</label><select name="prestation" id="ann_prestation">
+						<option value="auto">🤖 Auto (depuis la note)</option>
+						<?php foreach ( $prestations as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Source</label><select name="source">
+						<?php foreach ( $sources as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Ville</label><input type="text" name="ville" id="ann_ville" value="<?php echo esc_attr( $ville_def ); ?>"></div>
+					<div class="ann-full"><label>Message a envoyer (auto-rempli, modifiable)</label>
+						<textarea name="message" id="ann_message" rows="4"></textarea>
+						<button type="button" class="button" onclick="annRegen()" style="margin-top:6px;">🔄 Regenerer depuis la note</button>
+						<small style="color:#64748b;display:block;margin-top:4px;">Variables : <code>{prenom}</code> <code>{ville}</code> <code>{note}</code></small>
+					</div>
+				</div>
+				<p style="margin-top:14px;"><button type="submit" class="button button-primary button-hero">Ajouter</button></p>
+			</form>
+		</details>
+
+		<!-- LEGAL EN BAS, DISCRET -->
+		<div class="ann-legal" style="margin-top:16px;font-size:12px;">⚖️ <strong>A respecter :</strong> contacte uniquement des personnes qui ont publie une annonce. Pas d'envoi automatique en masse. Si quelqu'un dit non, mets-le sur <em>Ne plus contacter</em>.</div>
 	</div>
 
 	<script>
