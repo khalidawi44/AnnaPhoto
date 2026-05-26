@@ -105,17 +105,17 @@ function ann_sources() {
 }
 
 /* ===========================================================================
- * Mots-cles par prestation (pour la recherche d'annonces)
+ * Mots-cles par prestation — orientes "DEMANDE" (pas offre)
  * ========================================================================= */
 function ann_keywords( $prestation ) {
 	$map = array(
-		'mariage'   => array( 'photographe mariage',   'cherche photographe mariage',   'recherche photographe mariage' ),
-		'couple'    => array( 'photographe couple',    'shooting EVJF',                 'photographe seance couple' ),
-		'famille'   => array( 'photographe famille',   'shooting famille',              'seance photo enfants' ),
-		'grossesse' => array( 'photographe grossesse', 'photographe maternite',         'shooting grossesse' ),
-		'portrait'  => array( 'photographe portrait',  'shooting portrait',             'book photo' ),
-		'evenement' => array( 'photographe evenement', 'photographe anniversaire',      'reportage evenement' ),
-		'autre'     => array( 'cherche photographe',   'recherche photographe' ),
+		'mariage'   => array( 'cherche photographe mariage',   'recherche photographe mariage',   'besoin photographe mariage' ),
+		'couple'    => array( 'cherche photographe couple',    'cherche photographe EVJF',        'recherche photographe couple' ),
+		'famille'   => array( 'cherche photographe famille',   'cherche photographe enfants',     'besoin photographe famille' ),
+		'grossesse' => array( 'cherche photographe grossesse', 'cherche photographe maternite',   'recherche shooting grossesse' ),
+		'portrait'  => array( 'cherche photographe portrait',  'besoin book photo',               'recherche photographe portrait' ),
+		'evenement' => array( 'cherche photographe evenement', 'cherche photographe anniversaire','besoin photographe soiree' ),
+		'autre'     => array( 'cherche photographe',           'recherche photographe',           'besoin photographe' ),
 	);
 	return isset( $map[ $prestation ] ) ? $map[ $prestation ] : $map['autre'];
 }
@@ -158,32 +158,44 @@ function ann_platforms() {
 		'fb_marketplace' => array(
 			'label' => 'Facebook Marketplace',
 			'emoji' => '🛒',
-			'tpl'   => 'https://www.facebook.com/marketplace/search/?query={q}',
+			'tpl'   => 'https://www.facebook.com/marketplace/search?query={q}',
 			'loc'   => '',
 		),
-		'fb_posts' => array(
-			'label' => 'Facebook (publications)',
+		'fb_search' => array(
+			'label' => 'Facebook (recherche)',
 			'emoji' => '📘',
-			'tpl'   => 'https://www.facebook.com/search/posts/?q={q}',
+			'tpl'   => 'https://www.facebook.com/search/top?q={q}',
 			'loc'   => '',
 		),
-		'fb_groups' => array(
-			'label' => 'Facebook (groupes)',
-			'emoji' => '👥',
-			'tpl'   => 'https://www.facebook.com/groups/search/groups/?q={q}',
-			'loc'   => '',
-		),
-		'insta_tag' => array(
-			'label' => 'Instagram (hashtag)',
+		'insta_search' => array(
+			'label' => 'Instagram',
 			'emoji' => '📸',
-			'tpl'   => 'https://www.instagram.com/explore/tags/{q_tag}/',
+			'tpl'   => 'https://www.instagram.com/explore/search/keyword/?q={q}',
 			'loc'   => '',
 		),
 		'google' => array(
-			'label' => 'Google',
+			'label' => 'Google (phrase exacte)',
 			'emoji' => '🔎',
-			'tpl'   => 'https://www.google.com/search?q={q}{loc}',
+			'tpl'   => 'https://www.google.com/search?q=%22{q}%22{loc}',
 			'loc'   => '+{cp}',
+		),
+		'twitter' => array(
+			'label' => 'X / Twitter (live)',
+			'emoji' => '🐦',
+			'tpl'   => 'https://twitter.com/search?q=%22{q}%22&f=live',
+			'loc'   => '',
+		),
+		'mariagesnet' => array(
+			'label' => 'Mariages.net (via Google)',
+			'emoji' => '💍',
+			'tpl'   => 'https://www.google.com/search?q=site%3Amariages.net+%22{q}%22',
+			'loc'   => '',
+		),
+		'forums_fr' => array(
+			'label' => 'Forums FR (aufeminin, doctissimo)',
+			'emoji' => '💬',
+			'tpl'   => 'https://www.google.com/search?q=%28site%3Aaufeminin.com+OR+site%3Adoctissimo.fr%29+%22{q}%22',
+			'loc'   => '',
 		),
 	);
 }
@@ -193,9 +205,8 @@ function ann_platform_url( $platform_key, $q, $cp = '' ) {
 	$pl  = $p[ $platform_key ];
 	$url = $pl['tpl'];
 	$loc = ( '' !== $cp && '' !== $pl['loc'] ) ? str_replace( '{cp}', rawurlencode( $cp ), $pl['loc'] ) : '';
-	$url = str_replace( '{q}',     rawurlencode( $q ), $url );
-	$url = str_replace( '{q_tag}', preg_replace( '/[^a-z0-9]/i', '', $q ), $url );
-	$url = str_replace( '{loc}',   $loc, $url );
+	$url = str_replace( '{q}',   rawurlencode( $q ), $url );
+	$url = str_replace( '{loc}', $loc, $url );
 	return $url;
 }
 
