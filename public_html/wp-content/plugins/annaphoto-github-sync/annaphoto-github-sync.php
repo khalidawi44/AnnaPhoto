@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anna Photo — Sync GitHub (auto-update)
  * Description: Met a jour les fichiers du site depuis un repo GitHub, en 1 clic ou automatiquement (toutes les 5 min). Reprend le systeme d'Alliance Groupe : SHA distant, telechargement, sauvegarde auto, liste blanche d'extensions, fichiers sensibles proteges. Page : Outils > Sync GitHub.
- * Version: 1.0.0
+ * Version: 1.1.0
  * Author: Anna Photo
  * Text Domain: annaphoto-github-sync
  */
@@ -69,7 +69,48 @@ class Anna_GitHub_Sync {
 			'target_custom' => '',
 			'token'         => '',
 			'cron_on'       => 0,
+			// Liste blanche de chemins relatifs (a la racine cible) a synchroniser.
+			// Une entree par ligne. Vide = tout synchroniser (ancien comportement).
+			// Default : on ne touche QUE les plugins maison pour ne pas downgrade
+			// les plugins tiers mis a jour via WP admin.
+			'allowlist'     => "plugins/annaphoto-prospection\nplugins/annaphoto-github-sync",
 		) );
+	}
+
+	/**
+	 * Parse l'allowlist en tableau de chemins normalises.
+	 */
+	private static function allowlist_paths() {
+		$s = self::settings();
+		$raw = isset( $s['allowlist'] ) ? (string) $s['allowlist'] : '';
+		if ( '' === trim( $raw ) ) { return array(); }
+		$lines = preg_split( '/\r\n|\r|\n/', $raw );
+		$out = array();
+		foreach ( $lines as $line ) {
+			$line = trim( $line );
+			if ( '' === $line ) { continue; }
+			if ( '#' === substr( $line, 0, 1 ) ) { continue; } // commentaire
+			$out[] = trim( $line, '/' );
+		}
+		return $out;
+	}
+
+	/**
+	 * Verifie si un chemin relatif doit etre synchronise selon l'allowlist.
+	 * Si la liste est vide -> tout est autorise (compat).
+	 * Sinon : le chemin doit etre soit dans une entree autorisee, soit en etre un parent.
+	 */
+	private static function path_allowed( $rel_path, $allowlist ) {
+		if ( empty( $allowlist ) ) { return true; }
+		$rel_path = trim( $rel_path, '/' );
+		if ( '' === $rel_path ) { return true; }
+		foreach ( $allowlist as $allowed ) {
+			// Cas 1 : rel_path EST l'entree ou est dedans (ex: rel=plugins/x/y allowed=plugins/x)
+			if ( 0 === strpos( $rel_path . '/', $allowed . '/' ) ) { return true; }
+			// Cas 2 : rel_path est un parent (ex: rel=plugins allowed=plugins/x) -> descendre
+			if ( 0 === strpos( $allowed . '/', $rel_path . '/' ) ) { return true; }
+		}
+		return false;
 	}
 
 	public static function target_dir() {
@@ -375,8 +416,9 @@ class Anna_GitHub_Sync {
 		return true;
 	}
 
-	private static function sync_recursive( $src, $dst, $backup, $rel, &$stats, &$log ) {
+	private static function sync_recursive( $src, $dst, $backup, $rel, &$stats, &$log, $allowlist = null ) {
 		if ( ! is_dir( $src ) ) { return; }
+		if ( null === $allowlist ) { $allowlist = self::allowlist_paths(); }
 		foreach ( scandir( $src ) as $item ) {
 			if ( '.' === $item || '..' === $item ) { continue; }
 			if ( in_array( $item, self::PROTECTED, true ) ) { $stats['skipped']++; continue; }
@@ -385,9 +427,12 @@ class Anna_GitHub_Sync {
 			$dst_path = $dst . '/' . $item;
 			$rel_path = '' === $rel ? $item : $rel . '/' . $item;
 
+			// Filtre allowlist : skip si le chemin n'est ni autorise ni un parent d'un autorise
+			if ( ! self::path_allowed( $rel_path, $allowlist ) ) { $stats['skipped']++; continue; }
+
 			if ( is_dir( $src_path ) ) {
 				if ( ! is_dir( $dst_path ) ) { wp_mkdir_p( $dst_path ); }
-				self::sync_recursive( $src_path, $dst_path, $backup . '/' . $item, $rel_path, $stats, $log );
+				self::sync_recursive( $src_path, $dst_path, $backup . '/' . $item, $rel_path, $stats, $log, $allowlist );
 				continue;
 			}
 
@@ -441,6 +486,7 @@ class Anna_GitHub_Sync {
 			'target_custom' => sanitize_text_field( wp_unslash( $_POST['target_custom'] ?? '' ) ),
 			'token'         => sanitize_text_field( wp_unslash( $_POST['token'] ?? '' ) ),
 			'cron_on'       => empty( $_POST['cron_on'] ) ? 0 : 1,
+			'allowlist'     => sanitize_textarea_field( wp_unslash( $_POST['allowlist'] ?? '' ) ),
 		) );
 		delete_transient( 'aphoto_sha_remote' );
 		self::redirect( array( 'msg' => 'saved' ) );
@@ -533,6 +579,11 @@ class Anna_GitHub_Sync {
 		echo '</select> <input type="text" name="target_custom" value="' . esc_attr( $s['target_custom'] ) . '" class="regular-text" placeholder="/chemin/absolu (si personnalise)"></td></tr>';
 		echo '<tr><th><label>Token GitHub (repo prive)</label></th><td><input type="password" name="token" value="' . esc_attr( $s['token'] ) . '" class="regular-text" autocomplete="new-password"><p class="description">Laisse vide si le repo est public. Sinon : un <em>Personal Access Token</em> avec acces lecture au repo.</p></td></tr>';
 		echo '<tr><th><label>Auto-sync</label></th><td><label><input type="checkbox" name="cron_on" value="1" ' . checked( 1, (int) $s['cron_on'], false ) . '> Verifier et appliquer les MAJ automatiquement toutes les 5 minutes</label></td></tr>';
+		$allow_default = $s['allowlist'];
+		echo '<tr><th><label>Liste blanche (dossiers a synchroniser)</label></th><td>';
+		echo '<textarea name="allowlist" rows="5" class="large-text code" placeholder="plugins/annaphoto-prospection&#10;plugins/annaphoto-github-sync">' . esc_textarea( $allow_default ) . '</textarea>';
+		echo '<p class="description"><strong>Important :</strong> 1 chemin par ligne, relatif a la cible (' . esc_html( $s['target_key'] ) . '). <strong>Seuls ces dossiers seront synchronises</strong> — les autres plugins/themes ne seront PAS touches (donc tes MAJ WordPress ne seront pas annulees). <strong>Laisse vide pour tout synchroniser</strong> (ancien comportement, risque de downgrade des plugins tiers).</p>';
+		echo '</td></tr>';
 		echo '</tbody></table>';
 		echo '<p><button class="button button-primary">Enregistrer</button></p>';
 		echo '</form>';
