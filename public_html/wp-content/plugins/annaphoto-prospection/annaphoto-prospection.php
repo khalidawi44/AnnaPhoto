@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anna Photo — Prospection
  * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces, bookmarklet "capturer une annonce" en 1 clic, import auto via alertes mail IMAP (Leboncoin, Mariages.net), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels.
- * Version: 2.2.1
+ * Version: 2.3.0
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -930,10 +930,10 @@ function ann_css() {
 	.ann-prest{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;margin:0 6px 8px 0;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;color:#0f172a;transition:all .15s;}
 	.ann-prest:hover{border-color:#3b82f6;background:#eff6ff;}
 	.ann-prest.is-active{background:#3b82f6;color:#fff;border-color:#3b82f6;}
-	.ann-platform{display:inline-flex;align-items:center;gap:8px;padding:14px 18px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#0f172a;font-weight:500;transition:all .15s;}
-	.ann-platform:hover{border-color:#3b82f6;background:#eff6ff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(59,130,246,.1);color:#1d4ed8;}
-	.ann-platform .em{font-size:20px;}
-	.ann-platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+	.ann-platform{display:inline-flex;align-items:center;gap:10px;padding:18px 20px;background:#fff;border:2px solid #e2e8f0;border-radius:12px;text-decoration:none;color:#0f172a;font-weight:600;font-size:15px;transition:all .15s;}
+	.ann-platform:hover{border-color:#3b82f6;background:#eff6ff;transform:translateY(-2px);box-shadow:0 6px 14px rgba(59,130,246,.15);color:#1d4ed8;}
+	.ann-platform .em{font-size:24px;}
+	.ann-platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;}
 	.ann-kw-chip{display:inline-block;padding:3px 10px;background:#f1f5f9;border-radius:12px;font-size:12px;color:#475569;margin-right:6px;}
 	</style>
 	<?php
@@ -956,9 +956,44 @@ function ann_render_hub() {
 	$labels = ann_prestations();
 	ann_css();
 	?>
+	<?php $cp = ann_setting( 'cp', '' ); ?>
 	<div class="wrap ann-wrap">
 		<h1 class="ann-h1">📸 Centre de controle — Anna Photo</h1>
 		<?php ann_notice(); ?>
+
+		<!-- MEGA CTA -->
+		<style>
+		.ann-mega{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:28px 32px;border-radius:16px;margin:14px 0 20px;box-shadow:0 10px 30px rgba(102,126,234,.3);}
+		.ann-mega-row{display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+		.ann-mega-text{flex:1;min-width:260px;}
+		.ann-mega-text h2{color:#fff!important;font-size:26px;margin:0 0 6px;font-weight:700;padding:0;border:0;}
+		.ann-mega-text p{color:rgba(255,255,255,.9);font-size:15px;margin:0;}
+		.ann-mega-btn{display:inline-block;padding:18px 32px;font-size:18px;font-weight:700;background:#fff;color:#667eea!important;text-decoration:none;border-radius:12px;box-shadow:0 4px 14px rgba(0,0,0,.15);transition:all .15s;white-space:nowrap;}
+		.ann-mega-btn:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(0,0,0,.25);background:#f8f8ff;}
+		.ann-mega-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:18px;padding-top:18px;border-top:1px solid rgba(255,255,255,.2);}
+		.ann-mega-quick .lbl{color:rgba(255,255,255,.85);font-size:13px;font-weight:600;margin-right:8px;align-self:center;}
+		.ann-mega-quick a{background:rgba(255,255,255,.2);color:#fff!important;padding:8px 14px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:500;transition:background .15s;}
+		.ann-mega-quick a:hover{background:rgba(255,255,255,.4);}
+		</style>
+		<div class="ann-mega">
+			<div class="ann-mega-row">
+				<div class="ann-mega-text">
+					<h2>🎯 Va chercher tes prochains clients</h2>
+					<p>Liens directs vers Leboncoin, Facebook, Instagram pre-remplis avec les bons mots-cles. 1 clic suffit.</p>
+				</div>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="ann-mega-btn">🎯 CHERCHER DES ANNONCES →</a>
+			</div>
+			<div class="ann-mega-quick">
+				<span class="lbl">⚡ Raccourcis Leboncoin :</span>
+				<?php
+				foreach ( array( 'mariage' => '💍 Mariage', 'famille' => '👨‍👩‍👧 Famille', 'grossesse' => '🤰 Grossesse', 'couple' => '💑 EVJF', 'evenement' => '🎉 Evenement' ) as $pkey => $plabel ) {
+					$kw  = ann_keywords( $pkey );
+					$url = ann_platform_url( 'leboncoin', $kw[0], $cp );
+					echo '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener">' . esc_html( $plabel ) . '</a>';
+				}
+				?>
+			</div>
+		</div>
 
 		<div class="ann-help">
 			<strong>☀️ Ta feuille de route du jour</strong>
@@ -1805,19 +1840,57 @@ function ann_render_settings_page() {
  * ========================================================================= */
 add_action( 'wp_dashboard_setup', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
-	wp_add_dashboard_widget( 'ann_widget', 'Anna Photo — Prospection', 'ann_dashboard_widget' );
+	// Widget mis en haut a gauche pour qu'elle le voie tout de suite
+	global $wp_meta_boxes;
+	wp_add_dashboard_widget( 'ann_widget', '📸 Anna Photo — Prospection', 'ann_dashboard_widget' );
+	if ( isset( $wp_meta_boxes['dashboard']['normal']['core'] ) ) {
+		$normal_dashboard = $wp_meta_boxes['dashboard']['normal']['core'];
+		$mine = array( 'ann_widget' => $wp_meta_boxes['dashboard']['normal']['core']['ann_widget'] );
+		unset( $wp_meta_boxes['dashboard']['normal']['core']['ann_widget'] );
+		$wp_meta_boxes['dashboard']['normal']['core'] = array_merge( $mine, $wp_meta_boxes['dashboard']['normal']['core'] );
+	}
 } );
 function ann_dashboard_widget() {
 	$c = ann_counters();
+	$cp = ann_setting( 'cp', '' );
 	?>
 	<style>
-	.ann-w-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0 0 12px;}
-	.ann-w-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-decoration:none;color:inherit;display:block;}
+	.ann-hero{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:18px;border-radius:10px;margin:0 -12px 14px;text-align:center;}
+	.ann-hero h2{color:#fff!important;font-size:17px;margin:0 0 4px;padding:0;font-weight:600;}
+	.ann-hero p{color:rgba(255,255,255,.85);font-size:13px;margin:0 0 12px;}
+	.ann-hero .mega-btn{display:block;width:100%;padding:16px;font-size:16px;font-weight:700;background:#fff;color:#667eea!important;text-decoration:none;border-radius:8px;margin:0 0 10px;box-shadow:0 4px 12px rgba(0,0,0,.15);transition:transform .15s;}
+	.ann-hero .mega-btn:hover{background:#f0f0ff;transform:translateY(-2px);box-shadow:0 6px 16px rgba(0,0,0,.2);}
+	.ann-quick{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:8px;}
+	.ann-quick a{background:rgba(255,255,255,.2);color:#fff!important;padding:6px 12px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:500;transition:background .15s;}
+	.ann-quick a:hover{background:rgba(255,255,255,.35);}
+	.ann-quick .lbl{color:rgba(255,255,255,.7);font-size:11px;width:100%;margin-top:6px;text-transform:uppercase;letter-spacing:.05em;}
+	.ann-w-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:0 0 10px;}
+	.ann-w-card{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px;text-decoration:none;color:inherit;display:block;text-align:center;}
 	.ann-w-card:hover{background:#eff6ff;border-color:#bfdbfe;}
-	.ann-w-card .n{font-size:22px;font-weight:700;}
+	.ann-w-card .n{font-size:22px;font-weight:700;line-height:1;}
 	.ann-w-card .l{color:#64748b;font-size:11px;text-transform:uppercase;}
+	.ann-w-card.urg{background:#fef2f2;border-color:#fecaca;}
 	.ann-w-card.urg .n{color:#dc2626;}
 	</style>
+
+	<div class="ann-hero">
+		<h2>👋 Salut Anna !</h2>
+		<p>Prête à trouver de nouveaux clients ?</p>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="mega-btn">
+			🎯 CHERCHER DES ANNONCES MAINTENANT
+		</a>
+		<div class="ann-quick">
+			<span class="lbl">Direct sur Leboncoin :</span>
+			<?php
+			foreach ( array( 'mariage' => '💍 Mariage', 'famille' => '👨‍👩‍👧 Famille', 'grossesse' => '🤰 Grossesse', 'evenement' => '🎉 Évenement' ) as $pkey => $plabel ) {
+				$kw  = ann_keywords( $pkey );
+				$url = ann_platform_url( 'leboncoin', $kw[0], $cp );
+				echo '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener">' . esc_html( $plabel ) . '</a>';
+			}
+			?>
+		</div>
+	</div>
+
 	<div class="ann-w-grid">
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-prospects&f_status=nouveau' ) ); ?>" class="ann-w-card <?php echo $c['nouveau'] > 0 ? 'urg' : ''; ?>">
 			<div class="n"><?php echo (int) $c['nouveau']; ?></div><div class="l">📋 A contacter</div>
@@ -1832,9 +1905,9 @@ function ann_dashboard_widget() {
 			<div class="n"><?php echo (int) $c['client']; ?></div><div class="l">💖 Clients</div>
 		</a>
 	</div>
-	<p style="margin:0;">
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="button button-primary">🎯 Trouver des annonces</a>
+	<p style="margin:0;text-align:center;">
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-hub' ) ); ?>" class="button">📸 Centre de controle</a>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-prospects' ) ); ?>" class="button">📋 Voir mes prospects</a>
 	</p>
 	<?php
 }
