@@ -270,7 +270,91 @@ class Anna_GitHub_Sync {
 		update_option( self::TIME_OPT, time() );
 		update_option( self::LOG_OPT, $log );
 
+		// 8. Purge des caches si des fichiers ont change
+		if ( $stats['updated'] + $stats['created'] > 0 ) {
+			$purged = self::purge_caches();
+			if ( ! empty( $purged ) ) {
+				$log[] = 'Cache purge : ' . implode( ', ', $purged );
+				update_option( self::LOG_OPT, $log );
+			}
+		}
+
 		return array( 'ok' => true, 'error' => '', 'log' => $log, 'sha' => $remote_sha, 'stats' => $stats );
+	}
+
+	/**
+	 * Purge les caches detectes. Retourne la liste des caches purges.
+	 */
+	private static function purge_caches() {
+		$done = array();
+
+		// Object cache WordPress (toujours)
+		if ( function_exists( 'wp_cache_flush' ) ) {
+			wp_cache_flush();
+			$done[] = 'object-cache';
+		}
+
+		// LiteSpeed Cache
+		if ( defined( 'LSCWP_V' ) || class_exists( 'LiteSpeed\Core' ) || class_exists( 'LiteSpeed_Cache_API' ) ) {
+			do_action( 'litespeed_purge_all' );
+			if ( class_exists( 'LiteSpeed_Cache_API' ) && method_exists( 'LiteSpeed_Cache_API', 'purge_all' ) ) {
+				LiteSpeed_Cache_API::purge_all();
+			}
+			$done[] = 'LiteSpeed';
+		}
+
+		// WP Rocket
+		if ( function_exists( 'rocket_clean_domain' ) ) {
+			rocket_clean_domain();
+			$done[] = 'WP Rocket';
+		}
+
+		// WP Super Cache
+		if ( function_exists( 'wp_cache_clear_cache' ) ) {
+			wp_cache_clear_cache();
+			$done[] = 'WP Super Cache';
+		}
+
+		// W3 Total Cache
+		if ( function_exists( 'w3tc_flush_all' ) ) {
+			w3tc_flush_all();
+			$done[] = 'W3TC';
+		}
+
+		// WP Fastest Cache
+		if ( class_exists( 'WpFastestCache' ) ) {
+			do_action( 'wpfc_clear_all_cache', true );
+			$done[] = 'WP Fastest Cache';
+		}
+
+		// SG Optimizer (SiteGround)
+		if ( function_exists( 'sg_cachepress_purge_cache' ) ) {
+			sg_cachepress_purge_cache();
+			$done[] = 'SG Optimizer';
+		}
+
+		// Cache Enabler
+		if ( has_action( 'cache_enabler_clear_complete_cache' ) ) {
+			do_action( 'cache_enabler_clear_complete_cache' );
+			$done[] = 'Cache Enabler';
+		}
+
+		// Hostinger / Hummingbird
+		if ( has_action( 'wphb_clear_page_cache' ) ) {
+			do_action( 'wphb_clear_page_cache' );
+			$done[] = 'Hummingbird';
+		}
+
+		// OPcache PHP
+		if ( function_exists( 'opcache_reset' ) ) {
+			@opcache_reset();
+			$done[] = 'OPcache';
+		}
+
+		// Hook generique pour permettre a d'autres plugins de purger
+		do_action( 'aphoto_sync_purge_caches' );
+
+		return $done;
 	}
 
 	private static function download_tarball( $s, $dest ) {

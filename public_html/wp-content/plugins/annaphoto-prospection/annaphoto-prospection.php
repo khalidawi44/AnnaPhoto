@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Anna Photo — Prospection
- * Description: Centre de controle Anna Photo : suivi prospects, recherche d'entreprises gratuite (API gouv.fr), agent automatique, alertes Telegram, modules optionnels (ambassadeurs, demandes recues). Tout en francais, gratuit, pense pour debuter sans connaissances techniques.
- * Version: 2.0.0
+ * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces (Leboncoin, Facebook, Instagram, Google), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels. Tout en francais, gratuit, pense pour debuter sans connaissances techniques.
+ * Version: 2.1.0
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -15,8 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 define( 'ANN_PROSP_OPT',     'annaphoto_prospects' );
 define( 'ANN_SET_OPT',       'annaphoto_prospection_settings' );
 define( 'ANN_MOD_OPT',       'annaphoto_modules' );
-define( 'ANN_SEARCH_OPT',    'annaphoto_searches' );
-define( 'ANN_HISTORY_OPT',   'annaphoto_search_history' );
+define( 'ANN_REMINDER_OPT',  'annaphoto_reminders' );        // rappels Telegram programmes
 define( 'ANN_AGENT_LOG_OPT', 'annaphoto_agent_log' );
 define( 'ANN_AMBASS_OPT',    'annaphoto_ambassadeurs' );
 define( 'ANN_DAILY_LAST',    'annaphoto_daily_last_push' );
@@ -25,19 +24,11 @@ define( 'ANN_CRON_DAILY', 'annaphoto_cron_daily' );
 define( 'ANN_CRON_AGENT', 'annaphoto_cron_agent' );
 
 /* ===========================================================================
- * Donnees : accesseurs
+ * Accesseurs donnees
  * ========================================================================= */
-function ann_get_prospects() {
-	$d = get_option( ANN_PROSP_OPT, array() );
-	return is_array( $d ) ? $d : array();
-}
-function ann_save_prospects( $list ) {
-	update_option( ANN_PROSP_OPT, array_values( $list ) );
-}
-function ann_get_settings() {
-	$d = get_option( ANN_SET_OPT, array() );
-	return is_array( $d ) ? $d : array();
-}
+function ann_get_prospects() { $d = get_option( ANN_PROSP_OPT, array() ); return is_array( $d ) ? $d : array(); }
+function ann_save_prospects( $list ) { update_option( ANN_PROSP_OPT, array_values( $list ) ); }
+function ann_get_settings() { $d = get_option( ANN_SET_OPT, array() ); return is_array( $d ) ? $d : array(); }
 function ann_setting( $key, $default = '' ) {
 	$s = ann_get_settings();
 	return isset( $s[ $key ] ) && '' !== $s[ $key ] ? $s[ $key ] : $default;
@@ -46,37 +37,20 @@ function ann_get_modules() {
 	$d = get_option( ANN_MOD_OPT, null );
 	if ( ! is_array( $d ) ) {
 		$d = array(
-			'recherche'    => 1,
+			'annonces'     => 1,
 			'agent'        => 1,
 			'broadcast'    => 1,
 			'ambassadeurs' => 0,
-			'demandes'     => 0,
 		);
 		update_option( ANN_MOD_OPT, $d );
 	}
+	// Backward-compat
+	if ( ! isset( $d['annonces'] ) && isset( $d['recherche'] ) ) { $d['annonces'] = $d['recherche']; }
 	return $d;
 }
-function ann_module_on( $key ) {
-	$m = ann_get_modules();
-	return ! empty( $m[ $key ] );
-}
-function ann_get_searches() {
-	$d = get_option( ANN_SEARCH_OPT, array() );
-	return is_array( $d ) ? $d : array();
-}
-function ann_save_searches( $list ) {
-	update_option( ANN_SEARCH_OPT, array_values( $list ) );
-}
-function ann_get_history() {
-	$d = get_option( ANN_HISTORY_OPT, array() );
-	return is_array( $d ) ? $d : array();
-}
-function ann_add_history( $entry ) {
-	$h = ann_get_history();
-	array_unshift( $h, $entry );
-	if ( count( $h ) > 20 ) { $h = array_slice( $h, 0, 20 ); }
-	update_option( ANN_HISTORY_OPT, $h );
-}
+function ann_module_on( $key ) { $m = ann_get_modules(); return ! empty( $m[ $key ] ); }
+function ann_get_reminders() { $d = get_option( ANN_REMINDER_OPT, array() ); return is_array( $d ) ? $d : array(); }
+function ann_save_reminders( $list ) { update_option( ANN_REMINDER_OPT, array_values( $list ) ); }
 function ann_agent_log_add( $line ) {
 	$l = get_option( ANN_AGENT_LOG_OPT, array() );
 	if ( ! is_array( $l ) ) { $l = array(); }
@@ -84,17 +58,9 @@ function ann_agent_log_add( $line ) {
 	if ( count( $l ) > 80 ) { $l = array_slice( $l, 0, 80 ); }
 	update_option( ANN_AGENT_LOG_OPT, $l );
 }
-function ann_agent_log_get() {
-	$l = get_option( ANN_AGENT_LOG_OPT, array() );
-	return is_array( $l ) ? $l : array();
-}
-function ann_get_ambassadeurs() {
-	$d = get_option( ANN_AMBASS_OPT, array() );
-	return is_array( $d ) ? $d : array();
-}
-function ann_save_ambassadeurs( $list ) {
-	update_option( ANN_AMBASS_OPT, array_values( $list ) );
-}
+function ann_agent_log_get() { $l = get_option( ANN_AGENT_LOG_OPT, array() ); return is_array( $l ) ? $l : array(); }
+function ann_get_ambassadeurs() { $d = get_option( ANN_AMBASS_OPT, array() ); return is_array( $d ) ? $d : array(); }
+function ann_save_ambassadeurs( $list ) { update_option( ANN_AMBASS_OPT, array_values( $list ) ); }
 
 /* ===========================================================================
  * Referentiels
@@ -115,10 +81,7 @@ function ann_status_labels() {
 	foreach ( ann_statuses() as $k => $v ) { $out[ $k ] = $v[0]; }
 	return $out;
 }
-function ann_status_color( $key ) {
-	$s = ann_statuses();
-	return isset( $s[ $key ] ) ? $s[ $key ][1] : '#64748b';
-}
+function ann_status_color( $key ) { $s = ann_statuses(); return isset( $s[ $key ] ) ? $s[ $key ][1] : '#64748b'; }
 function ann_prestations() {
 	return array(
 		'mariage'   => 'Mariage',
@@ -137,19 +100,103 @@ function ann_sources() {
 		'instagram' => 'Instagram',
 		'forum'     => 'Forum',
 		'google'    => 'Google / Annonce',
-		'api'       => 'API entreprises',
 		'autre'     => 'Autre',
 	);
 }
-function ann_search_presets() {
-	return array(
-		'wedding'    => array( 'label' => 'Wedding planners',        'q' => 'wedding planner',         'naf' => '7022Z', 'emoji' => '💍' ),
-		'salles'     => array( 'label' => 'Salles de reception',     'q' => 'salle reception mariage', 'naf' => '6820B', 'emoji' => '🏰' ),
-		'traiteurs'  => array( 'label' => 'Traiteurs',               'q' => 'traiteur evenement',      'naf' => '5621Z', 'emoji' => '🍽️' ),
-		'organis'    => array( 'label' => 'Organisateurs evenement', 'q' => 'organisateur evenement',  'naf' => '8230Z', 'emoji' => '🎉' ),
-		'photogr'    => array( 'label' => 'Autres photographes',     'q' => 'photographe',             'naf' => '7420Z', 'emoji' => '📸' ),
-		'fleuristes' => array( 'label' => 'Fleuristes',              'q' => 'fleuriste mariage',       'naf' => '4776Z', 'emoji' => '💐' ),
+
+/* ===========================================================================
+ * Mots-cles par prestation (pour la recherche d'annonces)
+ * ========================================================================= */
+function ann_keywords( $prestation ) {
+	$map = array(
+		'mariage'   => array( 'photographe mariage',   'cherche photographe mariage',   'recherche photographe mariage' ),
+		'couple'    => array( 'photographe couple',    'shooting EVJF',                 'photographe seance couple' ),
+		'famille'   => array( 'photographe famille',   'shooting famille',              'seance photo enfants' ),
+		'grossesse' => array( 'photographe grossesse', 'photographe maternite',         'shooting grossesse' ),
+		'portrait'  => array( 'photographe portrait',  'shooting portrait',             'book photo' ),
+		'evenement' => array( 'photographe evenement', 'photographe anniversaire',      'reportage evenement' ),
+		'autre'     => array( 'cherche photographe',   'recherche photographe' ),
 	);
+	return isset( $map[ $prestation ] ) ? $map[ $prestation ] : $map['autre'];
+}
+
+/**
+ * Detection automatique de la prestation a partir d'une note.
+ */
+function ann_detect_prestation( $note ) {
+	$n = strtolower( $note );
+	$tests = array(
+		'grossesse' => array( 'grossesse', 'enceinte', 'maternit', 'baby bump', 'attend un', 'attend une', 'futur maman' ),
+		'mariage'   => array( 'mariage', 'mariee', 'marie', 'wedding', 'noce' ),
+		'couple'    => array( 'evjf', 'evjg', 'enterrement vie', 'couple ' ),
+		'famille'   => array( 'famille', 'enfant', 'bebe', 'naissance', 'bapteme' ),
+		'portrait'  => array( 'portrait', 'book ', 'corporate', 'profil pro', 'cv ' ),
+		'evenement' => array( 'anniversaire', 'evenement', 'soiree', 'gala', 'spectacle', 'concert' ),
+	);
+	foreach ( $tests as $key => $words ) {
+		foreach ( $words as $w ) {
+			if ( false !== strpos( $n, $w ) ) { return $key; }
+		}
+	}
+	return 'autre';
+}
+
+/* ===========================================================================
+ * Plateformes : URL de recherche
+ * Note : ces liens ouvrent simplement la page de recherche du site.
+ * Aucun scraping (interdit par les CGU). Anna voit les vraies annonces
+ * dans son navigateur, identifiee a son compte si necessaire.
+ * ========================================================================= */
+function ann_platforms() {
+	return array(
+		'leboncoin' => array(
+			'label' => 'Leboncoin',
+			'emoji' => '🟧',
+			'tpl'   => 'https://www.leboncoin.fr/recherche?text={q}{loc}&sort=time',
+			'loc'   => '&locations={cp}',
+		),
+		'fb_marketplace' => array(
+			'label' => 'Facebook Marketplace',
+			'emoji' => '🛒',
+			'tpl'   => 'https://www.facebook.com/marketplace/search/?query={q}',
+			'loc'   => '',
+		),
+		'fb_posts' => array(
+			'label' => 'Facebook (publications)',
+			'emoji' => '📘',
+			'tpl'   => 'https://www.facebook.com/search/posts/?q={q}',
+			'loc'   => '',
+		),
+		'fb_groups' => array(
+			'label' => 'Facebook (groupes)',
+			'emoji' => '👥',
+			'tpl'   => 'https://www.facebook.com/groups/search/groups/?q={q}',
+			'loc'   => '',
+		),
+		'insta_tag' => array(
+			'label' => 'Instagram (hashtag)',
+			'emoji' => '📸',
+			'tpl'   => 'https://www.instagram.com/explore/tags/{q_tag}/',
+			'loc'   => '',
+		),
+		'google' => array(
+			'label' => 'Google',
+			'emoji' => '🔎',
+			'tpl'   => 'https://www.google.com/search?q={q}{loc}',
+			'loc'   => '+{cp}',
+		),
+	);
+}
+function ann_platform_url( $platform_key, $q, $cp = '' ) {
+	$p = ann_platforms();
+	if ( ! isset( $p[ $platform_key ] ) ) { return ''; }
+	$pl  = $p[ $platform_key ];
+	$url = $pl['tpl'];
+	$loc = ( '' !== $cp && '' !== $pl['loc'] ) ? str_replace( '{cp}', rawurlencode( $cp ), $pl['loc'] ) : '';
+	$url = str_replace( '{q}',     rawurlencode( $q ), $url );
+	$url = str_replace( '{q_tag}', preg_replace( '/[^a-z0-9]/i', '', $q ), $url );
+	$url = str_replace( '{loc}',   $loc, $url );
+	return $url;
 }
 
 /* ===========================================================================
@@ -162,12 +209,10 @@ function ann_phone_intl( $phone ) {
 	if ( strpos( $d, '0' ) === 0 ) { return '33' . substr( $d, 1 ); }
 	return $d;
 }
-function ann_phone_local( $phone ) {
-	return preg_replace( '/[^0-9+]/', '', (string) $phone );
-}
+function ann_phone_local( $phone ) { return preg_replace( '/[^0-9+]/', '', (string) $phone ); }
 
 /* ===========================================================================
- * Templates messages
+ * Templates messages — supportent {prenom} {ville} {note}
  * ========================================================================= */
 function ann_tpl_default() {
 	return array(
@@ -203,12 +248,10 @@ function ann_tpl_default() {
 }
 function ann_tpl_data() {
 	$custom = ann_setting( 'templates' );
-	if ( is_array( $custom ) && ! empty( $custom ) ) {
-		return wp_parse_args( $custom, ann_tpl_default() );
-	}
+	if ( is_array( $custom ) && ! empty( $custom ) ) { return wp_parse_args( $custom, ann_tpl_default() ); }
 	return ann_tpl_default();
 }
-function ann_build_message( $prestation, $prenom, $ville, $variation = 0 ) {
+function ann_build_message( $prestation, $prenom, $ville, $note = '', $variation = 0 ) {
 	$tpl = ann_tpl_data();
 	$key = isset( $tpl[ $prestation ] ) ? $prestation : 'autre';
 	$set = is_array( $tpl[ $key ] ) ? $tpl[ $key ] : array( (string) $tpl[ $key ] );
@@ -216,8 +259,10 @@ function ann_build_message( $prestation, $prenom, $ville, $variation = 0 ) {
 	$msg = $set[ $idx ];
 	$prenom = trim( (string) $prenom );
 	$ville  = trim( (string) $ville );
+	$note   = trim( (string) $note );
 	$msg = str_replace( '{prenom}', $prenom, $msg );
 	$msg = str_replace( '{ville}', '' !== $ville ? $ville : 'votre region', $msg );
+	$msg = str_replace( '{note}',  $note, $msg );
 	$msg = preg_replace( '/\s{2,}/', ' ', $msg );
 	return trim( $msg );
 }
@@ -254,71 +299,7 @@ function ann_tg_push( $text ) {
 	);
 	return true;
 }
-function ann_tg_configured() {
-	return '' !== ann_setting( 'tg_token' ) && '' !== ann_setting( 'tg_chat' );
-}
-
-/* ===========================================================================
- * API Recherche d'entreprises (gratuit, sans cle, officiel api.gouv.fr)
- * ========================================================================= */
-function ann_api_search( $args ) {
-	$args = wp_parse_args( $args, array(
-		'q'        => '',
-		'cp'       => '',
-		'naf'      => '',
-		'per_page' => 20,
-		'page'     => 1,
-	) );
-	$params = array(
-		'per_page'                       => max( 1, min( 25, (int) $args['per_page'] ) ),
-		'page'                           => max( 1, (int) $args['page'] ),
-		'limite_matching_etablissements' => 1,
-	);
-	if ( '' !== $args['q'] )   { $params['q']                   = $args['q']; }
-	if ( '' !== $args['cp'] )  { $params['code_postal']         = $args['cp']; }
-	if ( '' !== $args['naf'] ) { $params['activite_principale'] = $args['naf']; }
-
-	$url  = add_query_arg( $params, 'https://recherche-entreprises.api.gouv.fr/search' );
-	$resp = wp_remote_get( $url, array(
-		'timeout' => 15,
-		'headers' => array( 'User-Agent' => 'AnnaPhoto-Prospection/2.0' ),
-	) );
-	if ( is_wp_error( $resp ) ) {
-		return array( 'ok' => false, 'error' => $resp->get_error_message(), 'results' => array(), 'total' => 0 );
-	}
-	$code = wp_remote_retrieve_response_code( $resp );
-	if ( 200 !== $code ) {
-		return array( 'ok' => false, 'error' => 'HTTP ' . $code, 'results' => array(), 'total' => 0 );
-	}
-	$body = json_decode( wp_remote_retrieve_body( $resp ), true );
-	if ( ! is_array( $body ) || ! isset( $body['results'] ) ) {
-		return array( 'ok' => false, 'error' => 'Reponse API invalide', 'results' => array(), 'total' => 0 );
-	}
-	return array(
-		'ok'      => true,
-		'error'   => '',
-		'results' => $body['results'],
-		'total'   => isset( $body['total_results'] ) ? (int) $body['total_results'] : 0,
-	);
-}
-function ann_api_extract( $row ) {
-	$nom = '';
-	if ( ! empty( $row['nom_complet'] ) )            { $nom = $row['nom_complet']; }
-	elseif ( ! empty( $row['nom_raison_sociale'] ) ) { $nom = $row['nom_raison_sociale']; }
-	$siege = isset( $row['siege'] ) && is_array( $row['siege'] ) ? $row['siege'] : array();
-	$adr = ( isset( $siege['adresse'] ) ? $siege['adresse'] : '' ) . ' ' .
-	       ( isset( $siege['code_postal'] ) ? $siege['code_postal'] : '' ) . ' ' .
-	       ( isset( $siege['libelle_commune'] ) ? $siege['libelle_commune'] : ( isset( $siege['commune'] ) ? $siege['commune'] : '' ) );
-	$ville = isset( $siege['libelle_commune'] ) ? $siege['libelle_commune'] : ( isset( $siege['commune'] ) ? $siege['commune'] : '' );
-	$siret = isset( $siege['siret'] ) ? $siege['siret'] : ( isset( $row['siren'] ) ? $row['siren'] : '' );
-	return array(
-		'nom'      => $nom,
-		'adresse'  => trim( preg_replace( '/\s+/', ' ', $adr ) ),
-		'ville'    => $ville,
-		'activite' => isset( $row['libelle_activite_principale'] ) ? $row['libelle_activite_principale'] : ( isset( $row['activite_principale'] ) ? $row['activite_principale'] : '' ),
-		'siret'    => $siret,
-	);
-}
+function ann_tg_configured() { return '' !== ann_setting( 'tg_token' ) && '' !== ann_setting( 'tg_chat' ); }
 
 /* ===========================================================================
  * Activation / desactivation cron
@@ -326,12 +307,8 @@ function ann_api_extract( $row ) {
 register_activation_hook( __FILE__, 'ann_on_activate' );
 register_deactivation_hook( __FILE__, 'ann_on_deactivate' );
 function ann_on_activate() {
-	if ( ! wp_next_scheduled( ANN_CRON_DAILY ) ) {
-		wp_schedule_event( time() + 300, 'hourly', ANN_CRON_DAILY );
-	}
-	if ( ! wp_next_scheduled( ANN_CRON_AGENT ) ) {
-		wp_schedule_event( time() + 600, 'hourly', ANN_CRON_AGENT );
-	}
+	if ( ! wp_next_scheduled( ANN_CRON_DAILY ) ) { wp_schedule_event( time() + 300, 'hourly', ANN_CRON_DAILY ); }
+	if ( ! wp_next_scheduled( ANN_CRON_AGENT ) ) { wp_schedule_event( time() + 600, 'hourly', ANN_CRON_AGENT ); }
 }
 function ann_on_deactivate() {
 	foreach ( array( ANN_CRON_DAILY, ANN_CRON_AGENT ) as $hook ) {
@@ -341,7 +318,7 @@ function ann_on_deactivate() {
 }
 
 /* ===========================================================================
- * Cron : feuille de route matin (entre 8h et 11h, une fois par jour)
+ * Cron : feuille de route matin
  * ========================================================================= */
 add_action( ANN_CRON_DAILY, 'ann_cron_daily_run' );
 function ann_cron_daily_run() {
@@ -361,8 +338,8 @@ function ann_cron_daily_run() {
 	$lines[] = '⏳ <b>' . $counts['sans_rep'] . '</b> sans reponse';
 	$lines[] = '✨ <b>' . $counts['interesse'] . '</b> interesse(s)';
 	$lines[] = '';
-	if ( $counts['nouveau'] + $counts['relance'] === 0 ) {
-		$lines[] = '⚠️ Aucune vente en attente : pense a la prospection aujourd\'hui !';
+	if ( 0 === $counts['nouveau'] + $counts['relance'] ) {
+		$lines[] = '⚠️ Aucune vente en attente — pense a chercher de nouvelles annonces !';
 	} else {
 		$lines[] = 'Bonne journee ! 📸';
 	}
@@ -371,57 +348,48 @@ function ann_cron_daily_run() {
 }
 
 /* ===========================================================================
- * Cron : agent automatique
+ * Cron : agent — envoie rappels Telegram avec liens de recherche
  * ========================================================================= */
 add_action( ANN_CRON_AGENT, 'ann_cron_agent_run' );
 function ann_cron_agent_run() {
 	if ( ! ann_module_on( 'agent' ) ) { return; }
-	$searches = ann_get_searches();
-	if ( empty( $searches ) ) { return; }
+	if ( ! ann_tg_configured() ) { return; }
+	$reminders = ann_get_reminders();
+	if ( empty( $reminders ) ) { return; }
 	$now = time();
 	$changed = false;
-	foreach ( $searches as $idx => $s ) {
-		if ( empty( $s['active'] ) ) { continue; }
-		$freq = max( 3600, (int) ( isset( $s['freq'] ) ? $s['freq'] : 86400 ) );
-		$last = (int) ( isset( $s['last_run'] ) ? $s['last_run'] : 0 );
+	$platforms = ann_platforms();
+
+	foreach ( $reminders as $idx => $r ) {
+		if ( empty( $r['active'] ) ) { continue; }
+		$freq = max( 3600, (int) ( isset( $r['freq'] ) ? $r['freq'] : 86400 ) );
+		$last = (int) ( isset( $r['last_run'] ) ? $r['last_run'] : 0 );
 		if ( $now - $last < $freq ) { continue; }
 
-		$res = ann_api_search( array(
-			'q'   => isset( $s['q'] ) ? $s['q'] : '',
-			'cp'  => isset( $s['cp'] ) ? $s['cp'] : '',
-			'naf' => isset( $s['naf'] ) ? $s['naf'] : '',
-		) );
-		$seen      = ( isset( $s['seen'] ) && is_array( $s['seen'] ) ) ? $s['seen'] : array();
-		$new       = 0;
-		$new_names = array();
-		if ( $res['ok'] ) {
-			foreach ( $res['results'] as $row ) {
-				$ex = ann_api_extract( $row );
-				if ( '' === $ex['siret'] ) { continue; }
-				if ( in_array( $ex['siret'], $seen, true ) ) { continue; }
-				$seen[] = $ex['siret'];
-				$new++;
-				if ( count( $new_names ) < 5 ) { $new_names[] = $ex['nom']; }
-			}
-			ann_agent_log_add( 'Agent "' . ( isset( $s['label'] ) ? $s['label'] : $s['q'] ) . '" : ' . $new . ' nouveau(x) sur ' . $res['total'] );
-		} else {
-			ann_agent_log_add( 'Agent "' . ( isset( $s['label'] ) ? $s['label'] : $s['q'] ) . '" : ERREUR ' . $res['error'] );
-		}
-		if ( count( $seen ) > 500 ) { $seen = array_slice( $seen, -500 ); }
-		$searches[ $idx ]['seen']     = $seen;
-		$searches[ $idx ]['last_run'] = $now;
-		$searches[ $idx ]['last_new'] = $new;
-		$changed = true;
+		$prest = isset( $r['prestation'] ) ? $r['prestation'] : 'autre';
+		$cp    = isset( $r['cp'] ) ? $r['cp'] : '';
+		$kw    = ann_keywords( $prest );
+		$q     = $kw[0];
+		$plist = isset( $r['platforms'] ) && is_array( $r['platforms'] ) ? $r['platforms'] : array( 'leboncoin', 'fb_marketplace', 'google' );
+		$labels = ann_prestations();
 
-		if ( $new > 0 && ! empty( $s['notify_tg'] ) && ann_tg_configured() ) {
-			$msg  = '🔔 <b>' . ( isset( $s['label'] ) ? $s['label'] : 'Recherche' ) . '</b> — ' . $new . ' nouveau(x)';
-			if ( ! empty( $new_names ) ) {
-				$msg .= "\n" . implode( "\n", array_map( function ( $n ) { return '• ' . $n; }, $new_names ) );
-			}
-			ann_tg_push( $msg );
+		$msg  = '🔍 <b>Rappel prospection : ' . esc_html( isset( $labels[ $prest ] ) ? $labels[ $prest ] : '' ) . '</b>';
+		if ( '' !== $cp ) { $msg .= ' (CP ' . esc_html( $cp ) . ')'; }
+		$msg .= "\n\nVa chercher de nouvelles annonces :\n";
+		foreach ( $plist as $pkey ) {
+			if ( ! isset( $platforms[ $pkey ] ) ) { continue; }
+			$url = ann_platform_url( $pkey, $q, $cp );
+			if ( '' === $url ) { continue; }
+			$msg .= $platforms[ $pkey ]['emoji'] . ' <a href="' . esc_url( $url ) . '">' . esc_html( $platforms[ $pkey ]['label'] ) . '</a>' . "\n";
 		}
+		$msg .= "\nQuand tu trouves : ajoute le prospect dans le CRM 📋";
+		ann_tg_push( $msg );
+
+		$reminders[ $idx ]['last_run'] = $now;
+		$changed = true;
+		ann_agent_log_add( 'Rappel envoye : ' . ( isset( $labels[ $prest ] ) ? $labels[ $prest ] : $prest ) . ( '' !== $cp ? ' CP ' . $cp : '' ) );
 	}
-	if ( $changed ) { ann_save_searches( $searches ); }
+	if ( $changed ) { ann_save_reminders( $reminders ); }
 }
 
 /* ===========================================================================
@@ -446,11 +414,11 @@ function ann_admin_menu() {
 	add_menu_page( 'Anna Photo', 'Anna Photo', 'manage_options', 'ann-hub', 'ann_render_hub', 'dashicons-camera-alt', 26 );
 	add_submenu_page( 'ann-hub', 'Centre de controle', 'Centre de controle', 'manage_options', 'ann-hub', 'ann_render_hub' );
 	add_submenu_page( 'ann-hub', 'Prospects', 'Prospects', 'manage_options', 'ann-prospects', 'ann_render_prospects_page' );
-	if ( ann_module_on( 'recherche' ) ) {
-		add_submenu_page( 'ann-hub', 'Recherche entreprises', 'Recherche entreprises', 'manage_options', 'ann-search', 'ann_render_search_page' );
+	if ( ann_module_on( 'annonces' ) ) {
+		add_submenu_page( 'ann-hub', 'Trouver des annonces', 'Trouver des annonces', 'manage_options', 'ann-annonces', 'ann_render_annonces_page' );
 	}
 	if ( ann_module_on( 'agent' ) ) {
-		add_submenu_page( 'ann-hub', 'Agent automatique', 'Agent automatique', 'manage_options', 'ann-agent', 'ann_render_agent_page' );
+		add_submenu_page( 'ann-hub', 'Rappels automatiques', 'Rappels automatiques', 'manage_options', 'ann-agent', 'ann_render_agent_page' );
 	}
 	if ( ann_module_on( 'ambassadeurs' ) ) {
 		add_submenu_page( 'ann-hub', 'Ambassadeurs', 'Ambassadeurs', 'manage_options', 'ann-ambass', 'ann_render_ambass_page' );
@@ -459,13 +427,10 @@ function ann_admin_menu() {
 }
 
 function ann_redirect( $page, $args = array() ) {
-	$url = add_query_arg( array_merge( array( 'page' => $page ), $args ), admin_url( 'admin.php' ) );
-	wp_safe_redirect( $url );
+	wp_safe_redirect( add_query_arg( array_merge( array( 'page' => $page ), $args ), admin_url( 'admin.php' ) ) );
 	exit;
 }
-function ann_check_admin() {
-	if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Non autorise' ); }
-}
+function ann_check_admin() { if ( ! current_user_can( 'manage_options' ) ) { wp_die( 'Non autorise' ); } }
 
 /* ===========================================================================
  * Handlers prospects
@@ -484,11 +449,13 @@ add_action( 'admin_post_ann_add', function () {
 			ann_redirect( 'ann-prospects', array( 'msg' => 'dup' ) );
 		}
 	}
-	$prestation = sanitize_text_field( wp_unslash( isset( $_POST['prestation'] ) ? $_POST['prestation'] : 'autre' ) );
-	$prenom     = sanitize_text_field( wp_unslash( isset( $_POST['prenom'] ) ? $_POST['prenom'] : '' ) );
-	$ville      = sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) );
-	$message    = sanitize_textarea_field( wp_unslash( isset( $_POST['message'] ) ? $_POST['message'] : '' ) );
-	if ( '' === $message ) { $message = ann_build_message( $prestation, $prenom, $ville ); }
+	$note       = sanitize_textarea_field( wp_unslash( isset( $_POST['note'] ) ? $_POST['note'] : '' ) );
+	$prestation = sanitize_text_field( wp_unslash( isset( $_POST['prestation'] ) ? $_POST['prestation'] : '' ) );
+	if ( '' === $prestation || 'auto' === $prestation ) { $prestation = ann_detect_prestation( $note ); }
+	$prenom = sanitize_text_field( wp_unslash( isset( $_POST['prenom'] ) ? $_POST['prenom'] : '' ) );
+	$ville  = sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) );
+	$message = sanitize_textarea_field( wp_unslash( isset( $_POST['message'] ) ? $_POST['message'] : '' ) );
+	if ( '' === $message ) { $message = ann_build_message( $prestation, $prenom, $ville, $note ); }
 
 	$entry = array(
 		'id'         => uniqid( 'p_' ),
@@ -498,7 +465,7 @@ add_action( 'admin_post_ann_add', function () {
 		'source'     => sanitize_text_field( wp_unslash( isset( $_POST['source'] ) ? $_POST['source'] : 'autre' ) ),
 		'prestation' => $prestation,
 		'ville'      => $ville,
-		'note'       => sanitize_textarea_field( wp_unslash( isset( $_POST['note'] ) ? $_POST['note'] : '' ) ),
+		'note'       => $note,
 		'message'    => $message,
 		'status'     => 'nouveau',
 		'created'    => current_time( 'Y-m-d H:i' ),
@@ -507,9 +474,9 @@ add_action( 'admin_post_ann_add', function () {
 	ann_save_prospects( $list );
 
 	$labels = ann_prestations();
-	$plabel = isset( $labels[ $prestation ] ) ? $labels[ $prestation ] : '';
-	ann_tg_push( '📋 Nouveau prospect : ' . ( '' !== $prenom ? $prenom : $phone ) . ' — ' . $plabel );
-	ann_redirect( 'ann-prospects', array( 'msg' => 'added' ) );
+	ann_tg_push( '📋 Nouveau prospect : ' . ( '' !== $prenom ? $prenom : $phone ) . ' — ' . ( isset( $labels[ $prestation ] ) ? $labels[ $prestation ] : '' ) );
+	$redir = sanitize_text_field( wp_unslash( isset( $_POST['_redir'] ) ? $_POST['_redir'] : 'ann-prospects' ) );
+	ann_redirect( $redir, array( 'msg' => 'added' ) );
 } );
 
 add_action( 'admin_post_ann_update', function () {
@@ -520,8 +487,18 @@ add_action( 'admin_post_ann_update', function () {
 	foreach ( $list as &$p ) {
 		if ( isset( $p['id'] ) && $p['id'] === $id ) {
 			if ( isset( $_POST['status'] ) )  { $p['status']  = sanitize_text_field( wp_unslash( $_POST['status'] ) ); }
-			if ( isset( $_POST['note'] ) )    { $p['note']    = sanitize_textarea_field( wp_unslash( $_POST['note'] ) ); }
-			if ( isset( $_POST['message'] ) ) { $p['message'] = sanitize_textarea_field( wp_unslash( $_POST['message'] ) ); }
+			if ( isset( $_POST['note'] ) )    {
+				$p['note'] = sanitize_textarea_field( wp_unslash( $_POST['note'] ) );
+				// Si demande, regenerer le message a partir de la note
+				if ( ! empty( $_POST['regenerate'] ) ) {
+					$prest = ann_detect_prestation( $p['note'] );
+					if ( 'autre' !== $prest ) { $p['prestation'] = $prest; }
+					$p['message'] = ann_build_message( $p['prestation'], $p['prenom'] ?? '', $p['ville'] ?? '', $p['note'] );
+				}
+			}
+			if ( isset( $_POST['message'] ) && empty( $_POST['regenerate'] ) ) {
+				$p['message'] = sanitize_textarea_field( wp_unslash( $_POST['message'] ) );
+			}
 			break;
 		}
 	}
@@ -533,7 +510,7 @@ add_action( 'admin_post_ann_update', function () {
 add_action( 'admin_post_ann_delete', function () {
 	ann_check_admin();
 	check_admin_referer( 'ann_delete' );
-	$id   = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
+	$id = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
 	$list = array_filter( ann_get_prospects(), function ( $p ) use ( $id ) {
 		return ! ( isset( $p['id'] ) && $p['id'] === $id );
 	} );
@@ -541,86 +518,64 @@ add_action( 'admin_post_ann_delete', function () {
 	ann_redirect( 'ann-prospects', array( 'msg' => 'deleted' ) );
 } );
 
-add_action( 'admin_post_ann_add_from_api', function () {
+/* ===========================================================================
+ * Handlers rappels (anciennement "recherches auto")
+ * ========================================================================= */
+add_action( 'admin_post_ann_reminder_save', function () {
 	ann_check_admin();
-	check_admin_referer( 'ann_add_from_api' );
-	$nom   = sanitize_text_field( wp_unslash( isset( $_POST['nom'] ) ? $_POST['nom'] : '' ) );
-	$ville = sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) );
-	$adr   = sanitize_text_field( wp_unslash( isset( $_POST['adresse'] ) ? $_POST['adresse'] : '' ) );
-	$siret = sanitize_text_field( wp_unslash( isset( $_POST['siret'] ) ? $_POST['siret'] : '' ) );
-
-	$list = ann_get_prospects();
-	foreach ( $list as $p ) {
-		if ( '' !== $siret && false !== strpos( isset( $p['note'] ) ? $p['note'] : '', 'SIRET:' . $siret ) ) {
-			ann_redirect( 'ann-search', array( 'msg' => 'dup_api' ) );
-		}
-	}
-	$entry = array(
-		'id'         => uniqid( 'p_' ),
-		'prenom'     => $nom,
-		'phone'      => '',
-		'link'       => '' !== $siret ? 'https://annuaire-entreprises.data.gouv.fr/entreprise/' . $siret : '',
-		'source'     => 'api',
+	check_admin_referer( 'ann_reminder_save' );
+	$list = ann_get_reminders();
+	$plats = isset( $_POST['platforms'] ) && is_array( $_POST['platforms'] ) ? array_map( 'sanitize_text_field', wp_unslash( $_POST['platforms'] ) ) : array();
+	if ( empty( $plats ) ) { $plats = array( 'leboncoin', 'fb_marketplace', 'google' ); }
+	$list[] = array(
+		'id'         => uniqid( 'r_' ),
 		'prestation' => sanitize_text_field( wp_unslash( isset( $_POST['prestation'] ) ? $_POST['prestation'] : 'autre' ) ),
-		'ville'      => $ville,
-		'note'       => trim( $adr . ( '' !== $siret ? ' | SIRET:' . $siret : '' ) ),
-		'message'    => '',
-		'status'     => 'nouveau',
+		'cp'         => sanitize_text_field( wp_unslash( isset( $_POST['cp'] ) ? $_POST['cp'] : '' ) ),
+		'platforms'  => $plats,
+		'freq'       => max( 3600, (int) ( isset( $_POST['freq'] ) ? $_POST['freq'] : 86400 ) ),
+		'active'     => 1,
+		'last_run'   => 0,
 		'created'    => current_time( 'Y-m-d H:i' ),
 	);
-	array_unshift( $list, $entry );
-	ann_save_prospects( $list );
-	ann_redirect( 'ann-search', array( 'msg' => 'added_api' ) );
-} );
-
-/* ===========================================================================
- * Handlers recherches auto
- * ========================================================================= */
-add_action( 'admin_post_ann_search_save', function () {
-	ann_check_admin();
-	check_admin_referer( 'ann_search_save' );
-	$list = ann_get_searches();
-	$list[] = array(
-		'id'        => uniqid( 's_' ),
-		'label'     => sanitize_text_field( wp_unslash( isset( $_POST['label'] ) ? $_POST['label'] : 'Recherche' ) ),
-		'q'         => sanitize_text_field( wp_unslash( isset( $_POST['q'] ) ? $_POST['q'] : '' ) ),
-		'cp'        => sanitize_text_field( wp_unslash( isset( $_POST['cp'] ) ? $_POST['cp'] : '' ) ),
-		'naf'       => sanitize_text_field( wp_unslash( isset( $_POST['naf'] ) ? $_POST['naf'] : '' ) ),
-		'freq'      => max( 3600, (int) ( isset( $_POST['freq'] ) ? $_POST['freq'] : 86400 ) ),
-		'active'    => 1,
-		'notify_tg' => empty( $_POST['notify_tg'] ) ? 0 : 1,
-		'seen'      => array(),
-		'last_run'  => 0,
-		'last_new'  => 0,
-		'created'   => current_time( 'Y-m-d H:i' ),
-	);
-	ann_save_searches( $list );
+	ann_save_reminders( $list );
 	ann_redirect( 'ann-agent', array( 'msg' => 'saved' ) );
 } );
-add_action( 'admin_post_ann_search_toggle', function () {
+add_action( 'admin_post_ann_reminder_toggle', function () {
 	ann_check_admin();
-	check_admin_referer( 'ann_search_toggle' );
-	$id   = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
-	$list = ann_get_searches();
-	foreach ( $list as &$s ) {
-		if ( isset( $s['id'] ) && $s['id'] === $id ) {
-			$s['active'] = empty( $s['active'] ) ? 1 : 0;
+	check_admin_referer( 'ann_reminder_toggle' );
+	$id = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
+	$list = ann_get_reminders();
+	foreach ( $list as &$r ) {
+		if ( isset( $r['id'] ) && $r['id'] === $id ) { $r['active'] = empty( $r['active'] ) ? 1 : 0; break; }
+	}
+	unset( $r );
+	ann_save_reminders( $list );
+	ann_redirect( 'ann-agent', array( 'msg' => 'toggled' ) );
+} );
+add_action( 'admin_post_ann_reminder_delete', function () {
+	ann_check_admin();
+	check_admin_referer( 'ann_reminder_delete' );
+	$id = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
+	$list = array_filter( ann_get_reminders(), function ( $r ) use ( $id ) {
+		return ! ( isset( $r['id'] ) && $r['id'] === $id );
+	} );
+	ann_save_reminders( $list );
+	ann_redirect( 'ann-agent', array( 'msg' => 'deleted' ) );
+} );
+add_action( 'admin_post_ann_reminder_test', function () {
+	ann_check_admin();
+	check_admin_referer( 'ann_reminder_test' );
+	$id = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
+	$list = ann_get_reminders();
+	foreach ( $list as &$r ) {
+		if ( isset( $r['id'] ) && $r['id'] === $id ) {
+			$r['last_run'] = 0;
+			ann_save_reminders( $list );
+			ann_cron_agent_run();
 			break;
 		}
 	}
-	unset( $s );
-	ann_save_searches( $list );
-	ann_redirect( 'ann-agent', array( 'msg' => 'toggled' ) );
-} );
-add_action( 'admin_post_ann_search_delete', function () {
-	ann_check_admin();
-	check_admin_referer( 'ann_search_delete' );
-	$id   = sanitize_text_field( wp_unslash( isset( $_POST['id'] ) ? $_POST['id'] : '' ) );
-	$list = array_filter( ann_get_searches(), function ( $s ) use ( $id ) {
-		return ! ( isset( $s['id'] ) && $s['id'] === $id );
-	} );
-	ann_save_searches( $list );
-	ann_redirect( 'ann-agent', array( 'msg' => 'deleted' ) );
+	ann_redirect( 'ann-agent', array( 'msg' => 'tested' ) );
 } );
 
 /* ===========================================================================
@@ -632,6 +587,7 @@ add_action( 'admin_post_ann_settings', function () {
 	$existing = ann_get_settings();
 	$new = array(
 		'ville'        => sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) ),
+		'cp'           => sanitize_text_field( wp_unslash( isset( $_POST['cp'] ) ? $_POST['cp'] : '' ) ),
 		'tg_token'     => sanitize_text_field( wp_unslash( isset( $_POST['tg_token'] ) ? $_POST['tg_token'] : '' ) ),
 		'tg_chat'      => sanitize_text_field( wp_unslash( isset( $_POST['tg_chat'] ) ? $_POST['tg_chat'] : '' ) ),
 		'cron_morning' => empty( $_POST['cron_morning'] ) ? 0 : 1,
@@ -639,11 +595,10 @@ add_action( 'admin_post_ann_settings', function () {
 	);
 	update_option( ANN_SET_OPT, $new );
 	$mods = array(
-		'recherche'    => empty( $_POST['mod_recherche'] )    ? 0 : 1,
+		'annonces'     => empty( $_POST['mod_annonces'] )     ? 0 : 1,
 		'agent'        => empty( $_POST['mod_agent'] )        ? 0 : 1,
 		'broadcast'    => empty( $_POST['mod_broadcast'] )    ? 0 : 1,
 		'ambassadeurs' => empty( $_POST['mod_ambassadeurs'] ) ? 0 : 1,
-		'demandes'     => empty( $_POST['mod_demandes'] )     ? 0 : 1,
 	);
 	update_option( ANN_MOD_OPT, $mods );
 	ann_redirect( 'ann-settings', array( 'msg' => 'saved' ) );
@@ -702,20 +657,19 @@ function ann_notice() {
 	if ( empty( $_GET['msg'] ) ) { return; }
 	$m = sanitize_text_field( wp_unslash( $_GET['msg'] ) );
 	$map = array(
-		'added'     => array( 'success', 'Prospect ajoute. Tu peux cliquer sur WhatsApp ou SMS pour envoyer le message.' ),
-		'added_api' => array( 'success', 'Entreprise ajoutee a tes prospects.' ),
-		'updated'   => array( 'success', 'Modifications enregistrees.' ),
-		'deleted'   => array( 'success', 'Supprime.' ),
-		'saved'     => array( 'success', 'Enregistre.' ),
-		'toggled'   => array( 'success', 'Etat modifie.' ),
-		'tg_ok'     => array( 'success', 'Message de test Telegram envoye. Verifie ton telephone.' ),
-		'tg_ko'     => array( 'error',   'Telegram non configure : remplis le Token et le Chat ID.' ),
-		'phone'     => array( 'error',   'Numero de telephone invalide. Exemple : 06 12 34 56 78' ),
-		'dup'       => array( 'error',   'Ce numero est deja dans ta liste (anti-doublon).' ),
-		'dup_api'   => array( 'error',   'Cette entreprise (SIRET) est deja dans ta liste.' ),
-		'bc_ok'     => array( 'success', 'Message Telegram envoye.' ),
-		'bc_ko'     => array( 'error',   'Telegram non configure.' ),
-		'bc_empty'  => array( 'error',   'Message vide.' ),
+		'added'    => array( 'success', 'Prospect ajoute. Clique sur WhatsApp ou SMS pour envoyer le message.' ),
+		'updated'  => array( 'success', 'Modifications enregistrees.' ),
+		'deleted'  => array( 'success', 'Supprime.' ),
+		'saved'    => array( 'success', 'Enregistre.' ),
+		'toggled'  => array( 'success', 'Etat modifie.' ),
+		'tested'   => array( 'success', 'Rappel envoye sur Telegram, verifie ton telephone.' ),
+		'tg_ok'    => array( 'success', 'Message de test Telegram envoye. Verifie ton telephone.' ),
+		'tg_ko'    => array( 'error',   'Telegram non configure : remplis le Token et le Chat ID.' ),
+		'phone'    => array( 'error',   'Numero de telephone invalide. Exemple : 06 12 34 56 78' ),
+		'dup'      => array( 'error',   'Ce numero est deja dans ta liste (anti-doublon).' ),
+		'bc_ok'    => array( 'success', 'Message Telegram envoye.' ),
+		'bc_ko'    => array( 'error',   'Telegram non configure.' ),
+		'bc_empty' => array( 'error',   'Message vide.' ),
 	);
 	if ( ! isset( $map[ $m ] ) ) { return; }
 	$cls = 'error' === $map[ $m ][0] ? 'notice-error' : 'notice-success';
@@ -723,7 +677,7 @@ function ann_notice() {
 }
 
 /* ===========================================================================
- * CSS commun
+ * CSS
  * ========================================================================= */
 function ann_css() {
 	?>
@@ -757,17 +711,22 @@ function ann_css() {
 	.ann-status-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle;}
 	.ann-btn-wa{display:inline-block;background:#25D366;color:#fff!important;padding:6px 10px;border-radius:6px;text-decoration:none;font-weight:600;font-size:12px;}
 	.ann-btn-sms{display:inline-block;background:#0a66c2;color:#fff!important;padding:6px 10px;border-radius:6px;text-decoration:none;font-weight:600;font-size:12px;}
-	.ann-btn-add{display:inline-block;background:#10b981;color:#fff!important;padding:6px 10px;border-radius:6px;text-decoration:none;font-weight:600;font-size:12px;border:0;cursor:pointer;}
 	.ann-table{width:100%;border-collapse:collapse;background:#fff;border-radius:8px;overflow:hidden;}
 	.ann-table th{background:#f8fafc;padding:10px;text-align:left;font-size:12px;text-transform:uppercase;color:#475569;letter-spacing:.04em;border-bottom:1px solid #e2e8f0;}
 	.ann-table td{padding:10px;border-bottom:1px solid #f1f5f9;vertical-align:top;font-size:13px;}
 	.ann-table tr:hover{background:#f8fafc;}
-	.ann-preset{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;margin:0 6px 6px 0;text-decoration:none;color:inherit;font-size:13px;transition:all .15s;}
-	.ann-preset:hover{border-color:#3b82f6;background:#eff6ff;color:#1d4ed8;}
 	.ann-state-line{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px dashed #e2e8f0;font-size:13px;}
 	.ann-state-line:last-child{border:0;}
 	.ann-ok{color:#059669;font-weight:600;}
 	.ann-ko{color:#dc2626;font-weight:600;}
+	.ann-prest{display:inline-flex;align-items:center;gap:6px;padding:10px 16px;background:#fff;border:1px solid #e2e8f0;border-radius:20px;margin:0 6px 8px 0;cursor:pointer;font-size:14px;font-weight:500;text-decoration:none;color:#0f172a;transition:all .15s;}
+	.ann-prest:hover{border-color:#3b82f6;background:#eff6ff;}
+	.ann-prest.is-active{background:#3b82f6;color:#fff;border-color:#3b82f6;}
+	.ann-platform{display:inline-flex;align-items:center;gap:8px;padding:14px 18px;background:#fff;border:1px solid #e2e8f0;border-radius:10px;text-decoration:none;color:#0f172a;font-weight:500;transition:all .15s;}
+	.ann-platform:hover{border-color:#3b82f6;background:#eff6ff;transform:translateY(-2px);box-shadow:0 4px 10px rgba(59,130,246,.1);color:#1d4ed8;}
+	.ann-platform .em{font-size:20px;}
+	.ann-platform-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;}
+	.ann-kw-chip{display:inline-block;padding:3px 10px;background:#f1f5f9;border-radius:12px;font-size:12px;color:#475569;margin-right:6px;}
 	</style>
 	<?php
 }
@@ -799,7 +758,7 @@ function ann_render_hub() {
 				<li><b><?php echo (int) $counts['nouveau']; ?></b> prospect(s) a contacter</li>
 				<li><b><?php echo (int) $counts['relance']; ?></b> a relancer</li>
 				<?php if ( 0 === $counts['nouveau'] + $counts['relance'] ) : ?>
-					<li style="color:#b45309;">⚠️ Aucune vente en attente — pense a la prospection aujourd'hui !</li>
+					<li style="color:#b45309;">⚠️ Aucune vente en attente — va chercher de nouvelles annonces !</li>
 				<?php endif; ?>
 			</ul>
 			<p style="margin:10px 0 0;color:#64748b;font-size:13px;">
@@ -829,28 +788,28 @@ function ann_render_hub() {
 		<div class="ann-section-title">⚡ Tout piloter d'ici</div>
 		<div class="ann-grid ann-grid-3">
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-prospects' ) ); ?>" class="ann-action">
-				<span class="t">📋 Prospection / CRM</span>
+				<span class="t">📋 Mes prospects</span>
 				<span class="d">Gere tes prospects, change les statuts, envoie WhatsApp/SMS en 1 clic.</span>
 				<span class="arr">Ouvrir →</span>
 			</a>
-			<?php if ( ann_module_on( 'recherche' ) ) : ?>
-			<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-search' ) ); ?>" class="ann-action">
-				<span class="t">🔍 Recherche entreprises</span>
-				<span class="d">Trouve des partenaires (wedding planners, salles, traiteurs…) gratuitement via l'API officielle.</span>
+			<?php if ( ann_module_on( 'annonces' ) ) : ?>
+			<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="ann-action">
+				<span class="t">🎯 Trouver des annonces</span>
+				<span class="d">Liens directs vers Leboncoin, Facebook, Instagram, Google avec les bons mots-cles selon la prestation.</span>
 				<span class="arr">Ouvrir →</span>
 			</a>
 			<?php endif; ?>
 			<?php if ( ann_module_on( 'agent' ) ) : ?>
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-agent' ) ); ?>" class="ann-action">
-				<span class="t">🤖 Agent automatique</span>
-				<span class="d">Cherche tout seul toutes les X heures et t'alerte sur Telegram quand il trouve du nouveau.</span>
+				<span class="t">🔔 Rappels automatiques</span>
+				<span class="d">Recois un rappel Telegram avec les liens de recherche (ex : tous les jours a 9h, prospection mariage).</span>
 				<span class="arr">Ouvrir →</span>
 			</a>
 			<?php endif; ?>
 			<?php if ( ann_module_on( 'ambassadeurs' ) ) : ?>
 			<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-ambass' ) ); ?>" class="ann-action">
 				<span class="t">🤝 Ambassadeurs</span>
-				<span class="d">Programme de parrainage clients : suis qui t'a recommande qui.</span>
+				<span class="d">Programme de parrainage clients.</span>
 				<span class="arr">Ouvrir →</span>
 			</a>
 			<?php endif; ?>
@@ -868,7 +827,7 @@ function ann_render_hub() {
 					<thead><tr><th>Prospect</th><th>Prestation</th><th>Statut</th><th>Action</th></tr></thead>
 					<tbody>
 						<?php if ( empty( $next_prospects ) ) : ?>
-							<tr><td colspan="4" style="text-align:center;color:#64748b;padding:24px;">Aucun prospect en attente 👌 — c'est le moment d'aller en chercher de nouveaux !</td></tr>
+							<tr><td colspan="4" style="text-align:center;color:#64748b;padding:24px;">Aucun prospect en attente 👌 — va chercher de nouvelles annonces !</td></tr>
 						<?php endif; ?>
 						<?php foreach ( $next_prospects as $p ) :
 							$wa  = ann_wa_link( $p );
@@ -879,6 +838,7 @@ function ann_render_hub() {
 								<td>
 									<strong><?php echo esc_html( ! empty( $p['prenom'] ) ? $p['prenom'] : '(sans nom)' ); ?></strong>
 									<?php if ( ! empty( $p['phone'] ) ) : ?><br><small><?php echo esc_html( $p['phone'] ); ?></small><?php endif; ?>
+									<?php if ( ! empty( $p['link'] ) ) : ?><br><a href="<?php echo esc_url( $p['link'] ); ?>" target="_blank" rel="noopener" style="font-size:11px;">Voir l'annonce ↗</a><?php endif; ?>
 								</td>
 								<td><span class="ann-pill"><?php echo esc_html( isset( $labels[ $p['prestation'] ] ) ? $labels[ $p['prestation'] ] : '' ); ?></span></td>
 								<td><span class="ann-status-dot" style="background:<?php echo esc_attr( ann_status_color( $st ) ); ?>;"></span><?php $sl = ann_status_labels(); echo esc_html( isset( $sl[ $st ] ) ? $sl[ $st ] : $st ); ?></td>
@@ -908,8 +868,8 @@ function ann_render_hub() {
 					<div class="ann-state-line"><span>Ville</span><span><?php echo esc_html( $ville ); ?></span></div>
 					<div class="ann-state-line"><span>Telegram</span><span class="<?php echo $tg_ok ? 'ann-ok' : 'ann-ko'; ?>"><?php echo $tg_ok ? '✓ Connecte' : '✗ A configurer'; ?></span></div>
 					<div class="ann-state-line"><span>Auto matin 8h</span><span class="<?php echo ! empty( ann_setting( 'cron_morning' ) ) ? 'ann-ok' : 'ann-ko'; ?>"><?php echo ! empty( ann_setting( 'cron_morning' ) ) ? '✓ Active' : '✗ Inactif'; ?></span></div>
-					<div class="ann-state-line"><span>Module Recherche</span><span class="<?php echo ! empty( $mods['recherche'] ) ? 'ann-ok' : 'ann-ko'; ?>"><?php echo ! empty( $mods['recherche'] ) ? '✓' : '✗'; ?></span></div>
-					<div class="ann-state-line"><span>Module Agent auto</span><span class="<?php echo ! empty( $mods['agent'] ) ? 'ann-ok' : 'ann-ko'; ?>"><?php echo ! empty( $mods['agent'] ) ? '✓' : '✗'; ?></span></div>
+					<div class="ann-state-line"><span>Module Annonces</span><span class="<?php echo ! empty( $mods['annonces'] ) ? 'ann-ok' : 'ann-ko'; ?>"><?php echo ! empty( $mods['annonces'] ) ? '✓' : '✗'; ?></span></div>
+					<div class="ann-state-line"><span>Module Rappels</span><span class="<?php echo ! empty( $mods['agent'] ) ? 'ann-ok' : 'ann-ko'; ?>"><?php echo ! empty( $mods['agent'] ) ? '✓' : '✗'; ?></span></div>
 					<div class="ann-state-line"><span>Module Ambassadeurs</span><span class="<?php echo ! empty( $mods['ambassadeurs'] ) ? 'ann-ok' : 'ann-ko'; ?>"><?php echo ! empty( $mods['ambassadeurs'] ) ? '✓' : '✗'; ?></span></div>
 				</div>
 			</div>
@@ -953,9 +913,9 @@ function ann_render_prospects_page() {
 		<div class="ann-help">
 			<strong>Comment ca marche :</strong>
 			<ol style="margin:6px 0 0 18px;">
-				<li>Tu trouves une annonce (Leboncoin, Facebook, Insta, forum...).</li>
-				<li>Tu ajoutes le prospect : numero + lien. Le message se remplit tout seul.</li>
-				<li>Tu cliques <span class="ann-btn-wa">WhatsApp</span> ou <span class="ann-btn-sms">SMS</span> : ton appli s'ouvre avec le message deja ecrit.</li>
+				<li>Tu trouves une annonce (utilise <a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>">🎯 Trouver des annonces</a> pour les liens rapides).</li>
+				<li>Tu ajoutes le prospect : numero + lien + <strong>note descriptive</strong> (ex : "mariage juin 2025 La Baule, budget 1500").</li>
+				<li>Le message s'auto-genere selon la note. Tu cliques <span class="ann-btn-wa">WhatsApp</span> ou <span class="ann-btn-sms">SMS</span>.</li>
 			</ol>
 		</div>
 		<div class="ann-legal">⚖️ <strong>A respecter :</strong> contacte uniquement des personnes qui ont publie une annonce. Pas d'envoi automatique en masse. Si quelqu'un dit non, mets-le sur <em>Ne plus contacter</em>.</div>
@@ -968,18 +928,22 @@ function ann_render_prospects_page() {
 				<div class="ann-grid-2c">
 					<div><label>Prenom</label><input type="text" name="prenom" id="ann_prenom" placeholder="Ex : Julie"></div>
 					<div><label>Telephone *</label><input type="text" name="phone" required placeholder="06 12 34 56 78"></div>
-					<div><label>Prestation</label><select name="prestation" id="ann_prestation">
+					<div class="ann-full"><label>Lien de l'annonce</label><input type="text" name="link" placeholder="https://... (Leboncoin, Facebook, etc.)"></div>
+					<div class="ann-full"><label>📝 Note descriptive (le message s'adapte automatiquement)</label>
+						<textarea name="note" id="ann_note" rows="2" placeholder="Ex : cherche photographe mariage juin 2025 La Baule budget 1500€"></textarea>
+					</div>
+					<div><label>Prestation (auto-detectee depuis la note)</label><select name="prestation" id="ann_prestation">
+						<option value="auto">🤖 Auto (depuis la note)</option>
 						<?php foreach ( $prestations as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
 					</select></div>
 					<div><label>Source</label><select name="source">
 						<?php foreach ( $sources as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
 					</select></div>
-					<div class="ann-full"><label>Lien de l'annonce</label><input type="text" name="link" placeholder="https://..."></div>
 					<div><label>Ville</label><input type="text" name="ville" id="ann_ville" value="<?php echo esc_attr( $ville_def ); ?>"></div>
-					<div><label>Note perso</label><input type="text" name="note" placeholder="Ex : mariage en juin"></div>
-					<div class="ann-full"><label>Message a envoyer</label>
+					<div class="ann-full"><label>Message a envoyer (auto-rempli, modifiable)</label>
 						<textarea name="message" id="ann_message" rows="4"></textarea>
-						<button type="button" class="button" onclick="annRegen()" style="margin-top:6px;">🔄 Regenerer</button>
+						<button type="button" class="button" onclick="annRegen()" style="margin-top:6px;">🔄 Regenerer depuis la note</button>
+						<small style="color:#64748b;display:block;margin-top:4px;">Variables : <code>{prenom}</code> <code>{ville}</code> <code>{note}</code></small>
 					</div>
 				</div>
 				<p style="margin-top:14px;"><button type="submit" class="button button-primary button-hero">Ajouter</button></p>
@@ -1004,7 +968,7 @@ function ann_render_prospects_page() {
 		</form>
 
 		<table class="ann-table">
-			<thead><tr><th>Prospect</th><th>Prestation</th><th>Statut</th><th>Contacter</th><th>Date</th><th></th></tr></thead>
+			<thead><tr><th>Prospect</th><th>Note</th><th>Statut</th><th>Contacter</th><th>Date</th><th></th></tr></thead>
 			<tbody>
 				<?php if ( empty( $filtered ) ) : ?>
 					<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Aucun prospect 👆 ajoute-en un.</td></tr>
@@ -1019,12 +983,12 @@ function ann_render_prospects_page() {
 						<td>
 							<strong><?php echo esc_html( ! empty( $p['prenom'] ) ? $p['prenom'] : '(sans nom)' ); ?></strong><br>
 							<?php echo esc_html( isset( $p['phone'] ) ? $p['phone'] : '' ); ?>
-							<?php if ( ! empty( $p['link'] ) ) : ?><br><a href="<?php echo esc_url( $p['link'] ); ?>" target="_blank" rel="noopener">Voir l'annonce ↗</a><?php endif; ?>
-							<?php if ( ! empty( $p['note'] ) ) : ?><br><em style="color:#64748b;"><?php echo esc_html( $p['note'] ); ?></em><?php endif; ?>
+							<?php if ( ! empty( $p['link'] ) ) : ?><br><a href="<?php echo esc_url( $p['link'] ); ?>" target="_blank" rel="noopener" style="font-size:12px;">📎 Voir l'annonce ↗</a><?php endif; ?>
+							<br><span class="ann-pill"><?php echo esc_html( isset( $prestations[ $p['prestation'] ] ) ? $prestations[ $p['prestation'] ] : '' ); ?></span>
+							<small style="color:#94a3b8;"><?php echo esc_html( isset( $sources[ $p['source'] ] ) ? $sources[ $p['source'] ] : '' ); ?></small>
 						</td>
-						<td>
-							<span class="ann-pill"><?php echo esc_html( isset( $prestations[ $p['prestation'] ] ) ? $prestations[ $p['prestation'] ] : '' ); ?></span><br>
-							<small><?php echo esc_html( isset( $sources[ $p['source'] ] ) ? $sources[ $p['source'] ] : '' ); ?></small>
+						<td style="font-size:12px;color:#475569;max-width:300px;">
+							<?php if ( ! empty( $p['note'] ) ) : ?><em><?php echo esc_html( $p['note'] ); ?></em><?php else : ?><span style="color:#cbd5e1;">—</span><?php endif; ?>
 						</td>
 						<td>
 							<form method="post" action="<?php echo esc_url( $post ); ?>">
@@ -1040,13 +1004,16 @@ function ann_render_prospects_page() {
 							<?php if ( '' !== $wa ) : ?><a class="ann-btn-wa" href="<?php echo esc_url( $wa ); ?>" target="_blank" rel="noopener">WhatsApp</a><br><?php endif; ?>
 							<?php if ( '' !== $sms ) : ?><a class="ann-btn-sms" href="<?php echo esc_url( $sms ); ?>">SMS</a><?php endif; ?>
 							<details style="margin-top:6px;">
-								<summary style="cursor:pointer;font-size:12px;color:#64748b;">✏️ Modifier message</summary>
+								<summary style="cursor:pointer;font-size:12px;color:#64748b;">✏️ Modifier note / message</summary>
 								<form method="post" action="<?php echo esc_url( $post ); ?>" style="margin-top:6px;">
 									<input type="hidden" name="action" value="ann_update">
 									<input type="hidden" name="id" value="<?php echo esc_attr( $pid ); ?>">
 									<?php wp_nonce_field( 'ann_update' ); ?>
+									<label style="font-size:11px;">Note :</label>
+									<textarea name="note" rows="2" style="width:320px;"><?php echo esc_textarea( isset( $p['note'] ) ? $p['note'] : '' ); ?></textarea><br>
+									<label style="font-size:11px;">Message :</label>
 									<textarea name="message" rows="4" style="width:320px;"><?php echo esc_textarea( isset( $p['message'] ) ? $p['message'] : '' ); ?></textarea><br>
-									<input type="text" name="note" value="<?php echo esc_attr( isset( $p['note'] ) ? $p['note'] : '' ); ?>" placeholder="Note" style="width:320px;margin-top:4px;"><br>
+									<label style="font-size:11px;"><input type="checkbox" name="regenerate" value="1"> Regenerer message depuis la note</label><br>
 									<button type="submit" class="button button-small" style="margin-top:4px;">Enregistrer</button>
 								</form>
 							</details>
@@ -1068,21 +1035,46 @@ function ann_render_prospects_page() {
 
 	<script>
 	var ANN_TPL = <?php echo wp_json_encode( ann_tpl_data() ); ?>;
+	var ANN_DETECT = <?php echo wp_json_encode( array(
+		'grossesse' => array( 'grossesse', 'enceinte', 'maternit', 'futur maman', 'attend un', 'attend une' ),
+		'mariage'   => array( 'mariage', 'mariee', 'marie', 'wedding', 'noce' ),
+		'couple'    => array( 'evjf', 'evjg', 'enterrement vie', 'couple ' ),
+		'famille'   => array( 'famille', 'enfant', 'bebe', 'naissance', 'bapteme' ),
+		'portrait'  => array( 'portrait', 'book ', 'corporate', 'profil pro' ),
+		'evenement' => array( 'anniversaire', 'evenement', 'soiree', 'gala' ),
+	) ); ?>;
 	var ANN_VAR = 0;
+	function annDetect(note){
+		var n = (note||'').toLowerCase();
+		for (var k in ANN_DETECT) {
+			var ws = ANN_DETECT[k];
+			for (var i=0; i<ws.length; i++) {
+				if (n.indexOf(ws[i]) !== -1) return k;
+			}
+		}
+		return 'autre';
+	}
+	function annCurrentPrestation(){
+		var s = document.getElementById('ann_prestation');
+		var v = s ? s.value : 'autre';
+		if (v === 'auto') { v = annDetect((document.getElementById('ann_note')||{}).value || ''); }
+		return v;
+	}
 	function annFill(){
-		var prest  = (document.getElementById('ann_prestation')||{}).value || 'autre';
+		var prest  = annCurrentPrestation();
 		var prenom = ((document.getElementById('ann_prenom')||{}).value || '').trim();
 		var ville  = ((document.getElementById('ann_ville')||{}).value || '').trim() || 'votre region';
+		var note   = ((document.getElementById('ann_note')||{}).value || '').trim();
 		var set    = ANN_TPL[prest] || ANN_TPL['autre'] || [''];
 		if (!Array.isArray(set)) { set = [String(set)]; }
 		var msg = set[ANN_VAR % set.length] || '';
-		msg = msg.split('{prenom}').join(prenom).split('{ville}').join(ville);
+		msg = msg.split('{prenom}').join(prenom).split('{ville}').join(ville).split('{note}').join(note);
 		msg = msg.replace(/\s{2,}/g,' ').trim();
 		var t = document.getElementById('ann_message'); if (t) t.value = msg;
 	}
 	function annRegen(){ ANN_VAR++; annFill(); }
 	document.addEventListener('DOMContentLoaded', function(){
-		['ann_prestation','ann_prenom','ann_ville'].forEach(function(id){
+		['ann_prestation','ann_prenom','ann_ville','ann_note'].forEach(function(id){
 			var el = document.getElementById(id);
 			if (el){ el.addEventListener('change', function(){ ANN_VAR=0; annFill(); }); el.addEventListener('keyup', annFill); }
 		});
@@ -1093,144 +1085,181 @@ function ann_render_prospects_page() {
 }
 
 /* ===========================================================================
- * Page : Recherche entreprises
+ * Page : Trouver des annonces (hub de recherche)
  * ========================================================================= */
-function ann_render_search_page() {
+function ann_render_annonces_page() {
 	ann_check_admin();
-	if ( ! ann_module_on( 'recherche' ) ) { echo '<div class="wrap"><p>Module desactive.</p></div>'; return; }
-
-	$q   = sanitize_text_field( wp_unslash( isset( $_GET['q'] ) ? $_GET['q'] : '' ) );
-	$cp  = sanitize_text_field( wp_unslash( isset( $_GET['cp'] ) ? $_GET['cp'] : '' ) );
-	$naf = sanitize_text_field( wp_unslash( isset( $_GET['naf'] ) ? $_GET['naf'] : '' ) );
-	$results = null;
-	$total   = 0;
-	$err     = '';
-	if ( '' !== $q || '' !== $naf ) {
-		$res = ann_api_search( array( 'q' => $q, 'cp' => $cp, 'naf' => $naf ) );
-		if ( $res['ok'] ) {
-			$results = $res['results'];
-			$total   = $res['total'];
-			ann_add_history( array( 'q' => $q, 'cp' => $cp, 'naf' => $naf, 'total' => $total, 'when' => current_time( 'Y-m-d H:i' ) ) );
-		} else {
-			$err = $res['error'];
-		}
-	}
-	$post    = admin_url( 'admin-post.php' );
-	$presets = ann_search_presets();
-	$history = ann_get_history();
+	if ( ! ann_module_on( 'annonces' ) ) { echo '<div class="wrap"><p>Module desactive.</p></div>'; return; }
+	$prestations = ann_prestations();
+	$platforms   = ann_platforms();
+	$selected    = sanitize_text_field( wp_unslash( isset( $_GET['p'] ) ? $_GET['p'] : 'mariage' ) );
+	if ( ! isset( $prestations[ $selected ] ) ) { $selected = 'mariage'; }
+	$cp_def    = ann_setting( 'cp', '' );
+	$ville_def = ann_setting( 'ville', '' );
+	$cp        = sanitize_text_field( wp_unslash( isset( $_GET['cp'] ) ? $_GET['cp'] : $cp_def ) );
+	$keywords  = ann_keywords( $selected );
+	$post      = admin_url( 'admin-post.php' );
 	ann_css();
 	?>
 	<div class="wrap ann-wrap">
-		<h1 class="ann-h1">🔍 Recherche entreprises</h1>
+		<h1 class="ann-h1">🎯 Trouver des annonces</h1>
 		<?php ann_notice(); ?>
 
 		<div class="ann-help">
-			<strong>A quoi ca sert ?</strong> Trouver gratuitement des partenaires potentiels : wedding planners, salles, traiteurs, organisateurs d'evenement, autres photographes pour ton reseau.
-			<br><span style="color:#64748b;font-size:13px;">Donnees officielles INSEE via <code>recherche-entreprises.api.gouv.fr</code> — gratuit, sans cle. ⚠️ Les telephones ne sont pas fournis par l'API (donnees protegees).</span>
+			<strong>Comment ca marche :</strong>
+			<ol style="margin:6px 0 0 18px;">
+				<li>Choisis le <strong>type de prestation</strong> que tu veux prospecter.</li>
+				<li>Clique sur la <strong>plateforme</strong> (Leboncoin, Facebook…) — un nouvel onglet s'ouvre avec la bonne recherche.</li>
+				<li>Quand tu trouves une annonce avec un numero : copie-le, reviens ici, et utilise le formulaire ci-dessous pour <strong>l'ajouter en 1 clic</strong>.</li>
+				<li>Le message WhatsApp/SMS s'auto-genere selon ta note descriptive.</li>
+			</ol>
 		</div>
+		<div class="ann-legal">⚖️ <strong>Important :</strong> chaque site (Leboncoin, Facebook…) garde ses propres regles. Contacte uniquement les gens qui ont <strong>publie une annonce demandant un service</strong>. Pas de spam, pas d'envoi en masse.</div>
 
-		<div class="ann-card">
-			<strong>Presets photographe :</strong><br>
-			<?php foreach ( $presets as $key => $p ) : ?>
-				<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-search&q=' . rawurlencode( $p['q'] ) . '&naf=' . rawurlencode( $p['naf'] ) . '&cp=' . rawurlencode( $cp ) ) ); ?>" class="ann-preset"><?php echo esc_html( $p['emoji'] . ' ' . $p['label'] ); ?></a>
+		<div class="ann-section-title">1️⃣ Choisis ta prestation</div>
+		<div>
+			<?php foreach ( $prestations as $k => $label ) : ?>
+				<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces&p=' . $k . '&cp=' . rawurlencode( $cp ) ) ); ?>" class="ann-prest <?php echo $selected === $k ? 'is-active' : ''; ?>"><?php echo esc_html( $label ); ?></a>
 			<?php endforeach; ?>
 		</div>
 
-		<form method="get" class="ann-card">
-			<input type="hidden" name="page" value="ann-search">
-			<div class="ann-grid-2c">
-				<div class="ann-full"><label>Mots-cles</label><input type="text" name="q" value="<?php echo esc_attr( $q ); ?>" placeholder="Ex : wedding planner, salle reception..."></div>
-				<div><label>Code postal (5 chiffres)</label><input type="text" name="cp" value="<?php echo esc_attr( $cp ); ?>" placeholder="Ex : 44000"></div>
-				<div><label>Code NAF (optionnel)</label><input type="text" name="naf" value="<?php echo esc_attr( $naf ); ?>" placeholder="Ex : 7022Z"></div>
-			</div>
-			<p style="margin-top:14px;"><button class="button button-primary">Rechercher</button></p>
+		<form method="get" class="ann-card" style="padding:12px 18px;">
+			<input type="hidden" name="page" value="ann-annonces">
+			<input type="hidden" name="p" value="<?php echo esc_attr( $selected ); ?>">
+			<label><strong>Code postal :</strong></label>
+			<input type="text" name="cp" value="<?php echo esc_attr( $cp ); ?>" placeholder="Ex : 44000" style="width:120px;">
+			<button class="button">Filtrer par lieu</button>
+			<span style="color:#64748b;font-size:12px;">(optionnel — vide = recherche partout)</span>
 		</form>
 
-		<?php if ( '' !== $err ) : ?>
-			<div class="notice notice-error"><p>Erreur API : <?php echo esc_html( $err ); ?></p></div>
-		<?php endif; ?>
-
-		<?php if ( null !== $results ) : ?>
-			<div class="ann-section-title">📊 Resultats (<?php echo (int) $total; ?> entreprise(s))</div>
-			<table class="ann-table">
-				<thead><tr><th>Nom</th><th>Adresse</th><th>Activite</th><th>Action</th></tr></thead>
-				<tbody>
-					<?php if ( empty( $results ) ) : ?>
-						<tr><td colspan="4" style="text-align:center;color:#64748b;padding:24px;">Aucun resultat — essaie d'autres mots-cles ou enleve le code postal.</td></tr>
-					<?php endif; ?>
-					<?php foreach ( $results as $row ) :
-						$ex   = ann_api_extract( $row );
-						$link = '' !== $ex['siret'] ? 'https://annuaire-entreprises.data.gouv.fr/entreprise/' . rawurlencode( $ex['siret'] ) : '';
-						?>
-						<tr>
-							<td>
-								<strong><?php echo esc_html( $ex['nom'] ); ?></strong>
-								<?php if ( $link ) : ?><br><a href="<?php echo esc_url( $link ); ?>" target="_blank" rel="noopener" style="font-size:12px;">Annuaire officiel ↗</a><?php endif; ?>
-							</td>
-							<td style="font-size:12px;color:#475569;"><?php echo esc_html( $ex['adresse'] ); ?></td>
-							<td style="font-size:12px;"><?php echo esc_html( $ex['activite'] ); ?></td>
-							<td>
-								<form method="post" action="<?php echo esc_url( $post ); ?>">
-									<input type="hidden" name="action" value="ann_add_from_api">
-									<input type="hidden" name="nom" value="<?php echo esc_attr( $ex['nom'] ); ?>">
-									<input type="hidden" name="ville" value="<?php echo esc_attr( $ex['ville'] ); ?>">
-									<input type="hidden" name="adresse" value="<?php echo esc_attr( $ex['adresse'] ); ?>">
-									<input type="hidden" name="siret" value="<?php echo esc_attr( $ex['siret'] ); ?>">
-									<input type="hidden" name="prestation" value="autre">
-									<?php wp_nonce_field( 'ann_add_from_api' ); ?>
-									<button class="ann-btn-add">+ Ajouter au CRM</button>
-								</form>
-							</td>
-						</tr>
+		<div class="ann-section-title">2️⃣ Liens de recherche directs (s'ouvrent dans un nouvel onglet)</div>
+		<?php foreach ( $keywords as $q ) : ?>
+			<div style="margin:14px 0;">
+				<div style="font-size:13px;color:#475569;margin-bottom:8px;">Mot-cle : <span class="ann-kw-chip"><?php echo esc_html( $q ); ?></span></div>
+				<div class="ann-platform-grid">
+					<?php foreach ( $platforms as $pkey => $pl ) :
+						$url = ann_platform_url( $pkey, $q, $cp );
+						if ( '' === $url ) { continue; } ?>
+						<a class="ann-platform" href="<?php echo esc_url( $url ); ?>" target="_blank" rel="noopener">
+							<span class="em"><?php echo esc_html( $pl['emoji'] ); ?></span>
+							<span><?php echo esc_html( $pl['label'] ); ?></span>
+							<span style="margin-left:auto;color:#3b82f6;font-size:12px;">↗</span>
+						</a>
 					<?php endforeach; ?>
-				</tbody>
-			</table>
-		<?php endif; ?>
-
-		<?php if ( ! empty( $history ) ) : ?>
-			<div class="ann-section-title">🕓 Historique recent</div>
-			<div class="ann-card">
-				<?php foreach ( array_slice( $history, 0, 8 ) as $h ) : ?>
-					<div style="padding:6px 0;border-bottom:1px dashed #e2e8f0;font-size:13px;">
-						<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-search&q=' . rawurlencode( $h['q'] ) . '&cp=' . rawurlencode( $h['cp'] ) . '&naf=' . rawurlencode( $h['naf'] ) ) ); ?>"><?php echo esc_html( ! empty( $h['q'] ) ? $h['q'] : $h['naf'] ); ?></a>
-						<span style="color:#94a3b8;"> · <?php echo (int) $h['total']; ?> resultats · <?php echo esc_html( $h['when'] ); ?><?php if ( '' !== $h['cp'] ) : ?> · CP <?php echo esc_html( $h['cp'] ); ?><?php endif; ?></span>
-					</div>
-				<?php endforeach; ?>
+				</div>
 			</div>
-		<?php endif; ?>
+		<?php endforeach; ?>
+
+		<div class="ann-section-title">3️⃣ Ajout rapide d'une annonce trouvee</div>
+		<div class="ann-card">
+			<form method="post" action="<?php echo esc_url( $post ); ?>">
+				<input type="hidden" name="action" value="ann_add">
+				<input type="hidden" name="_redir" value="ann-annonces">
+				<?php wp_nonce_field( 'ann_add' ); ?>
+				<div class="ann-grid-2c">
+					<div><label>Prenom (si visible)</label><input type="text" name="prenom" id="ann_prenom" placeholder="Ex : Julie"></div>
+					<div><label>Telephone *</label><input type="text" name="phone" required placeholder="06 12 34 56 78"></div>
+					<div class="ann-full"><label>Lien de l'annonce *</label><input type="text" name="link" placeholder="https://..." required></div>
+					<div class="ann-full"><label>📝 Note descriptive (le message s'adapte automatiquement)</label>
+						<textarea name="note" id="ann_note" rows="2" placeholder="Ex : cherche photographe pour son mariage juin 2025 La Baule, budget 1500"></textarea>
+					</div>
+					<div><label>Prestation</label><select name="prestation" id="ann_prestation">
+						<option value="auto">🤖 Auto (depuis la note)</option>
+						<?php foreach ( $prestations as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>" <?php selected( $k, $selected ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Source</label><select name="source">
+						<?php $srcs = ann_sources(); foreach ( $srcs as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Ville</label><input type="text" name="ville" id="ann_ville" value="<?php echo esc_attr( $ville_def ); ?>"></div>
+					<div class="ann-full"><label>Message (auto, modifiable)</label>
+						<textarea name="message" id="ann_message" rows="4"></textarea>
+						<button type="button" class="button" onclick="annRegen()" style="margin-top:6px;">🔄 Regenerer depuis la note</button>
+					</div>
+				</div>
+				<p style="margin-top:14px;"><button type="submit" class="button button-primary button-hero">+ Ajouter au CRM</button></p>
+			</form>
+		</div>
 	</div>
+
+	<script>
+	var ANN_TPL = <?php echo wp_json_encode( ann_tpl_data() ); ?>;
+	var ANN_DETECT = <?php echo wp_json_encode( array(
+		'grossesse' => array( 'grossesse', 'enceinte', 'maternit', 'futur maman' ),
+		'mariage'   => array( 'mariage', 'mariee', 'marie', 'wedding' ),
+		'couple'    => array( 'evjf', 'evjg', 'enterrement vie', 'couple ' ),
+		'famille'   => array( 'famille', 'enfant', 'bebe', 'naissance', 'bapteme' ),
+		'portrait'  => array( 'portrait', 'book ', 'corporate' ),
+		'evenement' => array( 'anniversaire', 'evenement', 'soiree' ),
+	) ); ?>;
+	var ANN_VAR = 0;
+	function annDetect(note){
+		var n = (note||'').toLowerCase();
+		for (var k in ANN_DETECT) { var ws = ANN_DETECT[k]; for (var i=0; i<ws.length; i++) { if (n.indexOf(ws[i]) !== -1) return k; } }
+		return 'autre';
+	}
+	function annCurrentPrestation(){
+		var s = document.getElementById('ann_prestation');
+		var v = s ? s.value : 'autre';
+		if (v === 'auto') { v = annDetect((document.getElementById('ann_note')||{}).value || ''); }
+		return v;
+	}
+	function annFill(){
+		var prest = annCurrentPrestation();
+		var prenom = ((document.getElementById('ann_prenom')||{}).value || '').trim();
+		var ville = ((document.getElementById('ann_ville')||{}).value || '').trim() || 'votre region';
+		var note  = ((document.getElementById('ann_note')||{}).value || '').trim();
+		var set = ANN_TPL[prest] || ANN_TPL['autre'] || [''];
+		if (!Array.isArray(set)) { set = [String(set)]; }
+		var msg = set[ANN_VAR % set.length] || '';
+		msg = msg.split('{prenom}').join(prenom).split('{ville}').join(ville).split('{note}').join(note);
+		msg = msg.replace(/\s{2,}/g,' ').trim();
+		var t = document.getElementById('ann_message'); if (t) t.value = msg;
+	}
+	function annRegen(){ ANN_VAR++; annFill(); }
+	document.addEventListener('DOMContentLoaded', function(){
+		['ann_prestation','ann_prenom','ann_ville','ann_note'].forEach(function(id){
+			var el = document.getElementById(id);
+			if (el){ el.addEventListener('change', function(){ ANN_VAR=0; annFill(); }); el.addEventListener('keyup', annFill); }
+		});
+		annFill();
+	});
+	</script>
 	<?php
 }
 
 /* ===========================================================================
- * Page : Agent automatique
+ * Page : Rappels automatiques (ancien agent)
  * ========================================================================= */
 function ann_render_agent_page() {
 	ann_check_admin();
 	if ( ! ann_module_on( 'agent' ) ) { echo '<div class="wrap"><p>Module desactive.</p></div>'; return; }
-	$searches = ann_get_searches();
-	$logs     = ann_agent_log_get();
-	$post     = admin_url( 'admin-post.php' );
-	$tg_ok    = ann_tg_configured();
+	$reminders = ann_get_reminders();
+	$logs      = ann_agent_log_get();
+	$post      = admin_url( 'admin-post.php' );
+	$tg_ok     = ann_tg_configured();
+	$prestations = ann_prestations();
+	$platforms = ann_platforms();
+	$cp_def    = ann_setting( 'cp', '' );
 	ann_css();
 	?>
 	<div class="wrap ann-wrap">
-		<h1 class="ann-h1">🤖 Agent automatique</h1>
+		<h1 class="ann-h1">🔔 Rappels automatiques</h1>
 		<?php ann_notice(); ?>
 		<div class="ann-help">
-			<strong>Comment ca marche ?</strong> Tu sauvegardes une recherche (ex : wedding planners a Nantes). L'agent l'execute toutes les X heures, garde la trace des entreprises deja vues, et t'alerte sur Telegram <em>seulement</em> quand il en trouve des nouvelles.
+			<strong>Comment ca marche ?</strong> Tu programmes des rappels (ex : "Tous les jours a 9h, prospection mariage Nantes"). A chaque rappel, tu recois sur Telegram un message avec les <strong>liens directs</strong> vers Leboncoin, Facebook, Insta… Tu cliques, tu trouves, tu ajoutes.
+			<?php if ( ! $tg_ok ) : ?><br><span style="color:#dc2626;">⚠️ Configure d'abord Telegram dans les Reglages.</span><?php endif; ?>
 		</div>
 
 		<div class="ann-card">
-			<h2 style="margin-top:0;">➕ Nouvelle recherche auto</h2>
+			<h2 style="margin-top:0;">➕ Nouveau rappel</h2>
 			<form method="post" action="<?php echo esc_url( $post ); ?>">
-				<input type="hidden" name="action" value="ann_search_save">
-				<?php wp_nonce_field( 'ann_search_save' ); ?>
+				<input type="hidden" name="action" value="ann_reminder_save">
+				<?php wp_nonce_field( 'ann_reminder_save' ); ?>
 				<div class="ann-grid-2c">
-					<div><label>Libelle</label><input type="text" name="label" placeholder="Ex : Wedding planners Nantes"></div>
-					<div><label>Mots-cles</label><input type="text" name="q" placeholder="wedding planner"></div>
-					<div><label>Code postal</label><input type="text" name="cp" placeholder="44000"></div>
-					<div><label>Code NAF (optionnel)</label><input type="text" name="naf" placeholder="7022Z"></div>
+					<div><label>Prestation a prospecter</label><select name="prestation">
+						<?php foreach ( $prestations as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>"><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Code postal (optionnel)</label><input type="text" name="cp" value="<?php echo esc_attr( $cp_def ); ?>" placeholder="44000"></div>
 					<div><label>Frequence</label>
 						<select name="freq">
 							<option value="3600">Toutes les heures</option>
@@ -1239,48 +1268,58 @@ function ann_render_agent_page() {
 							<option value="604800">Toutes les semaines</option>
 						</select>
 					</div>
-					<div><label><input type="checkbox" name="notify_tg" value="1" <?php echo $tg_ok ? 'checked' : 'disabled'; ?>> Alerte Telegram <?php if ( ! $tg_ok ) : ?><small style="color:#dc2626;">(configure Telegram d'abord)</small><?php endif; ?></label></div>
+					<div class="ann-full"><label>Plateformes a inclure dans le rappel</label>
+						<?php foreach ( $platforms as $pkey => $pl ) : ?>
+							<label style="display:inline-block;margin:4px 12px 4px 0;"><input type="checkbox" name="platforms[]" value="<?php echo esc_attr( $pkey ); ?>" <?php echo in_array( $pkey, array( 'leboncoin', 'fb_marketplace', 'google' ), true ) ? 'checked' : ''; ?>> <?php echo esc_html( $pl['emoji'] . ' ' . $pl['label'] ); ?></label>
+						<?php endforeach; ?>
+					</div>
 				</div>
-				<p style="margin-top:14px;"><button class="button button-primary">Sauvegarder</button></p>
+				<p style="margin-top:14px;"><button class="button button-primary" <?php echo ! $tg_ok ? 'disabled' : ''; ?>>Programmer le rappel</button></p>
 			</form>
 		</div>
 
-		<div class="ann-section-title">🔄 Recherches actives</div>
+		<div class="ann-section-title">🔄 Rappels actifs</div>
 		<table class="ann-table">
-			<thead><tr><th>Libelle</th><th>Criteres</th><th>Frequence</th><th>Derniere execution</th><th>Etat</th><th></th></tr></thead>
+			<thead><tr><th>Prestation</th><th>Lieu</th><th>Plateformes</th><th>Frequence</th><th>Dernier envoi</th><th>Etat</th><th></th></tr></thead>
 			<tbody>
-				<?php if ( empty( $searches ) ) : ?>
-					<tr><td colspan="6" style="text-align:center;color:#64748b;padding:24px;">Aucune recherche sauvegardee. Ajoute-en une 👆</td></tr>
+				<?php if ( empty( $reminders ) ) : ?>
+					<tr><td colspan="7" style="text-align:center;color:#64748b;padding:24px;">Aucun rappel programme. Ajoute-en un 👆</td></tr>
 				<?php endif; ?>
 				<?php
 				$freq_lbl = array( 3600 => '/heure', 21600 => '/6h', 86400 => '/jour', 604800 => '/semaine' );
-				foreach ( $searches as $s ) : ?>
+				foreach ( $reminders as $r ) : ?>
 					<tr>
-						<td><strong><?php echo esc_html( isset( $s['label'] ) ? $s['label'] : '' ); ?></strong></td>
-						<td style="font-size:12px;">
-							<?php if ( ! empty( $s['q'] ) ) : ?>🔎 <?php echo esc_html( $s['q'] ); ?><?php endif; ?>
-							<?php if ( ! empty( $s['cp'] ) ) : ?><br>📍 CP <?php echo esc_html( $s['cp'] ); ?><?php endif; ?>
-							<?php if ( ! empty( $s['naf'] ) ) : ?><br>NAF <?php echo esc_html( $s['naf'] ); ?><?php endif; ?>
-							<?php if ( ! empty( $s['notify_tg'] ) ) : ?><br>🔔 Telegram<?php endif; ?>
+						<td><strong><?php echo esc_html( isset( $prestations[ $r['prestation'] ] ) ? $prestations[ $r['prestation'] ] : $r['prestation'] ); ?></strong></td>
+						<td><?php echo ! empty( $r['cp'] ) ? esc_html( $r['cp'] ) : '—'; ?></td>
+						<td style="font-size:11px;">
+							<?php
+							$plist = isset( $r['platforms'] ) && is_array( $r['platforms'] ) ? $r['platforms'] : array();
+							foreach ( $plist as $pk ) {
+								if ( isset( $platforms[ $pk ] ) ) { echo esc_html( $platforms[ $pk ]['emoji'] ) . ' '; }
+							}
+							?>
 						</td>
-						<td><?php echo esc_html( isset( $freq_lbl[ (int) $s['freq'] ] ) ? $freq_lbl[ (int) $s['freq'] ] : '?' ); ?></td>
-						<td style="font-size:12px;">
-							<?php echo ! empty( $s['last_run'] ) ? esc_html( wp_date( 'd/m H:i', (int) $s['last_run'] ) ) : '—'; ?>
-							<?php if ( ! empty( $s['last_new'] ) ) : ?><br><span class="ann-ok">+<?php echo (int) $s['last_new']; ?> nouveau(x)</span><?php endif; ?>
-						</td>
+						<td><?php echo esc_html( isset( $freq_lbl[ (int) $r['freq'] ] ) ? $freq_lbl[ (int) $r['freq'] ] : '?' ); ?></td>
+						<td style="font-size:12px;"><?php echo ! empty( $r['last_run'] ) ? esc_html( wp_date( 'd/m H:i', (int) $r['last_run'] ) ) : '—'; ?></td>
 						<td>
 							<form method="post" action="<?php echo esc_url( $post ); ?>" style="display:inline;">
-								<input type="hidden" name="action" value="ann_search_toggle">
-								<input type="hidden" name="id" value="<?php echo esc_attr( $s['id'] ); ?>">
-								<?php wp_nonce_field( 'ann_search_toggle' ); ?>
-								<button class="button button-small"><?php echo empty( $s['active'] ) ? 'OFF' : 'ON'; ?></button>
+								<input type="hidden" name="action" value="ann_reminder_toggle">
+								<input type="hidden" name="id" value="<?php echo esc_attr( $r['id'] ); ?>">
+								<?php wp_nonce_field( 'ann_reminder_toggle' ); ?>
+								<button class="button button-small"><?php echo empty( $r['active'] ) ? 'OFF' : 'ON'; ?></button>
 							</form>
 						</td>
 						<td>
+							<form method="post" action="<?php echo esc_url( $post ); ?>" style="display:inline;">
+								<input type="hidden" name="action" value="ann_reminder_test">
+								<input type="hidden" name="id" value="<?php echo esc_attr( $r['id'] ); ?>">
+								<?php wp_nonce_field( 'ann_reminder_test' ); ?>
+								<button class="button button-small" title="Envoyer maintenant pour test">📤 Test</button>
+							</form>
 							<form method="post" action="<?php echo esc_url( $post ); ?>" onsubmit="return confirm('Supprimer ?');" style="display:inline;">
-								<input type="hidden" name="action" value="ann_search_delete">
-								<input type="hidden" name="id" value="<?php echo esc_attr( $s['id'] ); ?>">
-								<?php wp_nonce_field( 'ann_search_delete' ); ?>
+								<input type="hidden" name="action" value="ann_reminder_delete">
+								<input type="hidden" name="id" value="<?php echo esc_attr( $r['id'] ); ?>">
+								<?php wp_nonce_field( 'ann_reminder_delete' ); ?>
 								<button class="button button-small">🗑️</button>
 							</form>
 						</td>
@@ -1292,9 +1331,7 @@ function ann_render_agent_page() {
 		<?php if ( ! empty( $logs ) ) : ?>
 			<div class="ann-section-title">📜 Journal</div>
 			<div class="ann-card" style="font-family:monospace;font-size:12px;max-height:300px;overflow:auto;background:#0f172a;color:#cbd5e1;">
-				<?php foreach ( $logs as $line ) : ?>
-					<div><?php echo esc_html( $line ); ?></div>
-				<?php endforeach; ?>
+				<?php foreach ( $logs as $line ) : ?><div><?php echo esc_html( $line ); ?></div><?php endforeach; ?>
 			</div>
 		<?php endif; ?>
 	</div>
@@ -1314,10 +1351,7 @@ function ann_render_ambass_page() {
 	<div class="wrap ann-wrap">
 		<h1 class="ann-h1">🤝 Ambassadeurs</h1>
 		<?php ann_notice(); ?>
-		<div class="ann-help">
-			<strong>Programme parrainage clients :</strong> tes anciens clients qui te recommandent. Note ici qui t'a envoye qui — pour pouvoir les remercier (remise, tirage offert, seance bonus).
-		</div>
-
+		<div class="ann-help"><strong>Programme parrainage clients :</strong> tes anciens clients qui te recommandent. Note ici qui t'a envoye qui — pour pouvoir les remercier (remise, tirage offert, seance bonus).</div>
 		<div class="ann-card">
 			<h2 style="margin-top:0;">➕ Ajouter un ambassadeur</h2>
 			<form method="post" action="<?php echo esc_url( $post ); ?>">
@@ -1332,7 +1366,6 @@ function ann_render_ambass_page() {
 				<p style="margin-top:14px;"><button class="button button-primary">Ajouter</button></p>
 			</form>
 		</div>
-
 		<table class="ann-table">
 			<thead><tr><th>Nom</th><th>Contact</th><th>Filleuls</th><th>Depuis</th><th></th></tr></thead>
 			<tbody>
@@ -1380,11 +1413,13 @@ function ann_render_settings_page() {
 			<?php wp_nonce_field( 'ann_settings' ); ?>
 
 			<h2 style="margin-top:0;">📍 General</h2>
-			<p><label><strong>Ta ville / region</strong> (apparait dans les messages)</label><br>
+			<p><label><strong>Ta ville</strong> (apparait dans les messages)</label><br>
 				<input type="text" name="ville" value="<?php echo esc_attr( isset( $s['ville'] ) ? $s['ville'] : '' ); ?>" placeholder="Ex : Nantes" style="width:320px;"></p>
+			<p><label><strong>Code postal par defaut</strong> (pour les filtres de recherche)</label><br>
+				<input type="text" name="cp" value="<?php echo esc_attr( isset( $s['cp'] ) ? $s['cp'] : '' ); ?>" placeholder="Ex : 44000" style="width:160px;"></p>
 
 			<hr>
-			<h2>📱 Telegram (notifications)</h2>
+			<h2>📱 Telegram (notifications & rappels)</h2>
 			<p class="description">1) Ecris a <code>@BotFather</code> sur Telegram pour creer un bot → Token. 2) Demarre une conversation avec ton bot et recupere ton Chat ID via <code>@userinfobot</code>.</p>
 			<p><label>Token du bot</label><br><input type="text" name="tg_token" value="<?php echo esc_attr( isset( $s['tg_token'] ) ? $s['tg_token'] : '' ); ?>" style="width:420px;" placeholder="123456:ABC-..."></p>
 			<p><label>Chat ID</label><br><input type="text" name="tg_chat" value="<?php echo esc_attr( isset( $s['tg_chat'] ) ? $s['tg_chat'] : '' ); ?>" style="width:240px;" placeholder="123456789"></p>
@@ -1394,11 +1429,10 @@ function ann_render_settings_page() {
 			<h2>🧩 Modules</h2>
 			<p class="description">Active uniquement ce dont tu as besoin.</p>
 			<p>
-				<label><input type="checkbox" name="mod_recherche" value="1" <?php checked( 1, (int) $mods['recherche'] ); ?>> 🔍 Recherche entreprises (API gouv.fr)</label><br>
-				<label><input type="checkbox" name="mod_agent" value="1" <?php checked( 1, (int) $mods['agent'] ); ?>> 🤖 Agent automatique</label><br>
+				<label><input type="checkbox" name="mod_annonces" value="1" <?php checked( 1, (int) $mods['annonces'] ); ?>> 🎯 Trouver des annonces (hub Leboncoin / Facebook / Insta / Google)</label><br>
+				<label><input type="checkbox" name="mod_agent" value="1" <?php checked( 1, (int) $mods['agent'] ); ?>> 🔔 Rappels automatiques Telegram</label><br>
 				<label><input type="checkbox" name="mod_broadcast" value="1" <?php checked( 1, (int) $mods['broadcast'] ); ?>> 📣 Diffusion Telegram depuis le hub</label><br>
-				<label><input type="checkbox" name="mod_ambassadeurs" value="1" <?php checked( 1, (int) $mods['ambassadeurs'] ); ?>> 🤝 Programme ambassadeurs (parrainage)</label><br>
-				<label><input type="checkbox" name="mod_demandes" value="1" <?php checked( 1, (int) $mods['demandes'] ); ?>> 📨 Suivi demandes recues (placeholder)</label>
+				<label><input type="checkbox" name="mod_ambassadeurs" value="1" <?php checked( 1, (int) $mods['ambassadeurs'] ); ?>> 🤝 Programme ambassadeurs (parrainage)</label>
 			</p>
 
 			<p><button class="button button-primary button-hero">Enregistrer</button></p>
@@ -1414,7 +1448,7 @@ function ann_render_settings_page() {
 }
 
 /* ===========================================================================
- * Dashboard widget WordPress
+ * Dashboard widget WP
  * ========================================================================= */
 add_action( 'wp_dashboard_setup', function () {
 	if ( ! current_user_can( 'manage_options' ) ) { return; }
@@ -1446,7 +1480,7 @@ function ann_dashboard_widget() {
 		</a>
 	</div>
 	<p style="margin:0;">
-		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-prospects' ) ); ?>" class="button button-primary">Ouvrir la prospection</a>
+		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-annonces' ) ); ?>" class="button button-primary">🎯 Trouver des annonces</a>
 		<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-hub' ) ); ?>" class="button">📸 Centre de controle</a>
 	</p>
 	<?php
