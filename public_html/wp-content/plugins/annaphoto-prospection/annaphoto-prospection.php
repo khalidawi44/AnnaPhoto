@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Anna Photo — Prospection
  * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces, bookmarklet "capturer une annonce" en 1 clic, import auto via alertes mail IMAP (Leboncoin, Mariages.net), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels.
- * Version: 2.2.0
+ * Version: 2.2.1
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -747,31 +747,36 @@ add_action( 'admin_post_ann_settings', function () {
 	ann_check_admin();
 	check_admin_referer( 'ann_settings' );
 	$existing = ann_get_settings();
-	// Si mot de passe IMAP vide, garder l'ancien (evite de l'effacer accidentellement)
-	$imap_pass_new = sanitize_text_field( wp_unslash( isset( $_POST['imap_pass'] ) ? $_POST['imap_pass'] : '' ) );
-	if ( '' === $imap_pass_new ) { $imap_pass_new = isset( $existing['imap_pass'] ) ? $existing['imap_pass'] : ''; }
-	$new = array(
-		'ville'        => sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) ),
-		'cp'           => sanitize_text_field( wp_unslash( isset( $_POST['cp'] ) ? $_POST['cp'] : '' ) ),
-		'tg_token'     => sanitize_text_field( wp_unslash( isset( $_POST['tg_token'] ) ? $_POST['tg_token'] : '' ) ),
-		'tg_chat'      => sanitize_text_field( wp_unslash( isset( $_POST['tg_chat'] ) ? $_POST['tg_chat'] : '' ) ),
-		'cron_morning' => empty( $_POST['cron_morning'] ) ? 0 : 1,
-		'imap_on'      => empty( $_POST['imap_on'] ) ? 0 : 1,
-		'imap_host'    => sanitize_text_field( wp_unslash( isset( $_POST['imap_host'] ) ? $_POST['imap_host'] : '' ) ),
-		'imap_port'    => sanitize_text_field( wp_unslash( isset( $_POST['imap_port'] ) ? $_POST['imap_port'] : '993' ) ),
-		'imap_user'    => sanitize_text_field( wp_unslash( isset( $_POST['imap_user'] ) ? $_POST['imap_user'] : '' ) ),
-		'imap_pass'    => $imap_pass_new,
-		'imap_folder'  => sanitize_text_field( wp_unslash( isset( $_POST['imap_folder'] ) ? $_POST['imap_folder'] : 'INBOX' ) ),
-		'templates'    => isset( $existing['templates'] ) ? $existing['templates'] : array(),
-	);
-	update_option( ANN_SET_OPT, $new );
-	$mods = array(
-		'annonces'     => empty( $_POST['mod_annonces'] )     ? 0 : 1,
-		'agent'        => empty( $_POST['mod_agent'] )        ? 0 : 1,
-		'broadcast'    => empty( $_POST['mod_broadcast'] )    ? 0 : 1,
-		'ambassadeurs' => empty( $_POST['mod_ambassadeurs'] ) ? 0 : 1,
-	);
-	update_option( ANN_MOD_OPT, $mods );
+	$new      = $existing;
+	$section  = sanitize_text_field( wp_unslash( isset( $_POST['_form_section'] ) ? $_POST['_form_section'] : 'main' ) );
+
+	if ( 'imap' === $section ) {
+		// Form IMAP : ne touche QUE les champs imap_*
+		$imap_pass_new = sanitize_text_field( wp_unslash( isset( $_POST['imap_pass'] ) ? $_POST['imap_pass'] : '' ) );
+		$new['imap_on']     = empty( $_POST['imap_on'] ) ? 0 : 1;
+		$new['imap_host']   = sanitize_text_field( wp_unslash( isset( $_POST['imap_host'] ) ? $_POST['imap_host'] : '' ) );
+		$new['imap_port']   = sanitize_text_field( wp_unslash( isset( $_POST['imap_port'] ) ? $_POST['imap_port'] : '993' ) );
+		$new['imap_user']   = sanitize_text_field( wp_unslash( isset( $_POST['imap_user'] ) ? $_POST['imap_user'] : '' ) );
+		if ( '' !== $imap_pass_new ) { $new['imap_pass'] = $imap_pass_new; }
+		$new['imap_folder'] = sanitize_text_field( wp_unslash( isset( $_POST['imap_folder'] ) ? $_POST['imap_folder'] : 'INBOX' ) );
+		update_option( ANN_SET_OPT, $new );
+	} else {
+		// Form principal : Général + Telegram + Modules. Ne touche PAS aux champs imap_*.
+		$new['ville']        = sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) );
+		$new['cp']           = sanitize_text_field( wp_unslash( isset( $_POST['cp'] ) ? $_POST['cp'] : '' ) );
+		$new['tg_token']     = sanitize_text_field( wp_unslash( isset( $_POST['tg_token'] ) ? $_POST['tg_token'] : '' ) );
+		$new['tg_chat']      = sanitize_text_field( wp_unslash( isset( $_POST['tg_chat'] ) ? $_POST['tg_chat'] : '' ) );
+		$new['cron_morning'] = empty( $_POST['cron_morning'] ) ? 0 : 1;
+		update_option( ANN_SET_OPT, $new );
+		// Modules : seulement si on est sur le form principal
+		$mods = array(
+			'annonces'     => empty( $_POST['mod_annonces'] )     ? 0 : 1,
+			'agent'        => empty( $_POST['mod_agent'] )        ? 0 : 1,
+			'broadcast'    => empty( $_POST['mod_broadcast'] )    ? 0 : 1,
+			'ambassadeurs' => empty( $_POST['mod_ambassadeurs'] ) ? 0 : 1,
+		);
+		update_option( ANN_MOD_OPT, $mods );
+	}
 	ann_redirect( 'ann-settings', array( 'msg' => 'saved' ) );
 } );
 
@@ -1701,6 +1706,7 @@ function ann_render_settings_page() {
 
 		<form method="post" action="<?php echo esc_url( $post ); ?>" class="ann-card">
 			<input type="hidden" name="action" value="ann_settings">
+			<input type="hidden" name="_form_section" value="main">
 			<?php wp_nonce_field( 'ann_settings' ); ?>
 
 			<h2 style="margin-top:0;">📍 General</h2>
@@ -1752,6 +1758,7 @@ function ann_render_settings_page() {
 		<!-- IMAP -->
 		<form method="post" action="<?php echo esc_url( $post ); ?>" class="ann-card" style="margin-top:24px;">
 			<input type="hidden" name="action" value="ann_settings">
+			<input type="hidden" name="_form_section" value="imap">
 			<?php wp_nonce_field( 'ann_settings' ); ?>
 			<h2 style="margin-top:0;">📥 Import auto via alertes mail (IMAP)</h2>
 			<?php if ( ! ann_imap_available() ) : ?>
