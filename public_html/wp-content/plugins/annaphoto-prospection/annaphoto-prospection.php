@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name: Anna Photo — Prospection
- * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces (Leboncoin, Facebook, Instagram, Google), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels. Tout en francais, gratuit, pense pour debuter sans connaissances techniques.
- * Version: 2.1.0
+ * Description: Centre de controle Anna Photo : suivi prospects, hub de recherche d'annonces, bookmarklet "capturer une annonce" en 1 clic, import auto via alertes mail IMAP (Leboncoin, Mariages.net), messages WhatsApp/SMS personnalises selon la note, rappels Telegram programmes, modules optionnels.
+ * Version: 2.2.0
  * Author: Anna Photo
  * Text Domain: annaphoto-prospection
  */
@@ -22,6 +22,7 @@ define( 'ANN_DAILY_LAST',    'annaphoto_daily_last_push' );
 
 define( 'ANN_CRON_DAILY', 'annaphoto_cron_daily' );
 define( 'ANN_CRON_AGENT', 'annaphoto_cron_agent' );
+define( 'ANN_CRON_IMAP',  'annaphoto_cron_imap' );
 
 /* ===========================================================================
  * Accesseurs donnees
@@ -320,9 +321,10 @@ register_deactivation_hook( __FILE__, 'ann_on_deactivate' );
 function ann_on_activate() {
 	if ( ! wp_next_scheduled( ANN_CRON_DAILY ) ) { wp_schedule_event( time() + 300, 'hourly', ANN_CRON_DAILY ); }
 	if ( ! wp_next_scheduled( ANN_CRON_AGENT ) ) { wp_schedule_event( time() + 600, 'hourly', ANN_CRON_AGENT ); }
+	if ( ! wp_next_scheduled( ANN_CRON_IMAP ) )  { wp_schedule_event( time() + 900, 'hourly', ANN_CRON_IMAP ); }
 }
 function ann_on_deactivate() {
-	foreach ( array( ANN_CRON_DAILY, ANN_CRON_AGENT ) as $hook ) {
+	foreach ( array( ANN_CRON_DAILY, ANN_CRON_AGENT, ANN_CRON_IMAP ) as $hook ) {
 		$ts = wp_next_scheduled( $hook );
 		if ( $ts ) { wp_unschedule_event( $ts, $hook ); }
 	}
@@ -418,6 +420,153 @@ function ann_counters() {
 }
 
 /* ===========================================================================
+ * IMAP : import auto des alertes mail (Leboncoin, Mariages.net, etc.)
+ * ========================================================================= */
+function ann_imap_available() { return function_exists( 'imap_open' ); }
+function ann_imap_configured() {
+	return '' !== ann_setting( 'imap_host' ) && '' !== ann_setting( 'imap_user' ) && '' !== ann_setting( 'imap_pass' );
+}
+function ann_imap_connect() {
+	if ( ! ann_imap_available() )  { return new WP_Error( 'ext', 'Extension PHP imap manquante sur ce serveur' ); }
+	if ( ! ann_imap_configured() ) { return new WP_Error( 'cfg', 'IMAP non configure' ); }
+	$host   = ann_setting( 'imap_host' );
+	$port   = (int) ann_setting( 'imap_port', '993' );
+	$user   = ann_setting( 'imap_user' );
+	$pass   = ann_setting( 'imap_pass' );
+	$folder = ann_setting( 'imap_folder', 'INBOX' );
+	$mb     = '{' . $host . ':' . $port . '/imap/ssl}' . $folder;
+	$s      = @imap_open( $mb, $user, $pass, 0, 1 );
+	if ( ! $s ) {
+		$err = imap_last_error();
+		return new WP_Error( 'conn', $err ? $err : 'Connexion impossible' );
+	}
+	return $s;
+}
+/**
+ * Extrait les annonces (URLs + titre) du corps d'un mail d'alerte.
+ */
+function ann_imap_parse_listings( $body, $subject = '' ) {
+	$listings = array();
+	if ( '' === trim( $body ) ) { return $listings; }
+	if ( false === stripos( $body, 'http' ) ) {
+		$decoded = quoted_printable_decode( $body );
+		if ( false !== stripos( $decoded, 'http' ) ) { $body = $decoded; }
+		else { $b64 = base64_decode( $body, true ); if ( false !== $b64 && false !== stripos( $b64, 'http' ) ) { $body = $b64; } }
+	}
+	// Leboncoin
+	if ( preg_match_all( '#https?://(?:www\.)?leboncoin\.fr/(?:ad|vi)/[^\s"\'<>\)\]]+#i', $body, $m ) ) {
+		foreach ( array_unique( $m[0] ) as $url ) {
+			$listings[] = array(
+				'url'    => strtok( $url, '?#' ),
+				'source' => 'leboncoin',
+				'title'  => $subject,
+			);
+		}
+	}
+	// Mariages.net
+	if ( preg_match_all( '#https?://(?:www\.)?mariages\.net/[a-z0-9_/\-]+#i', $body, $m ) ) {
+		foreach ( array_unique( $m[0] ) as $url ) {
+			$listings[] = array(
+				'url'    => strtok( $url, '?#' ),
+				'source' => 'autre',
+				'title'  => $subject,
+			);
+		}
+	}
+	// Vivastreet
+	if ( preg_match_all( '#https?://(?:www\.)?vivastreet\.com/[^\s"\'<>\)\]]+#i', $body, $m ) ) {
+		foreach ( array_unique( $m[0] ) as $url ) {
+			$listings[] = array(
+				'url'    => strtok( $url, '?#' ),
+				'source' => 'autre',
+				'title'  => $subject,
+			);
+		}
+	}
+	return $listings;
+}
+function ann_imap_run() {
+	if ( empty( ann_setting( 'imap_on' ) ) ) { return; }
+	$stream = ann_imap_connect();
+	if ( is_wp_error( $stream ) ) {
+		ann_agent_log_add( 'IMAP erreur : ' . $stream->get_error_message() );
+		return;
+	}
+	$emails = imap_search( $stream, 'UNSEEN' );
+	$found  = 0;
+	if ( $emails ) {
+		$list_prospects = ann_get_prospects();
+		$existing_urls  = array();
+		foreach ( $list_prospects as $p ) { if ( ! empty( $p['link'] ) ) { $existing_urls[] = $p['link']; } }
+
+		foreach ( $emails as $num ) {
+			$header  = imap_headerinfo( $stream, $num );
+			$subject = isset( $header->subject ) ? imap_utf8( $header->subject ) : '';
+			$body    = '';
+			$struct  = @imap_fetchstructure( $stream, $num );
+			if ( $struct && isset( $struct->parts ) && is_array( $struct->parts ) ) {
+				foreach ( $struct->parts as $idx => $part ) {
+					if ( strtoupper( $part->subtype ?? '' ) === 'HTML' ) {
+						$body .= imap_fetchbody( $stream, $num, ( $idx + 1 ) );
+					}
+				}
+				if ( '' === $body ) { $body = imap_fetchbody( $stream, $num, 1 ); }
+			} else {
+				$body = imap_body( $stream, $num );
+			}
+
+			$listings = ann_imap_parse_listings( $body, $subject );
+			foreach ( $listings as $l ) {
+				if ( in_array( $l['url'], $existing_urls, true ) ) { continue; }
+				$prest = ann_detect_prestation( $l['title'] . ' ' . $l['url'] );
+				$list_prospects[] = array(
+					'id'         => uniqid( 'p_' ),
+					'prenom'     => '',
+					'phone'      => '',
+					'link'       => $l['url'],
+					'source'     => $l['source'],
+					'prestation' => $prest,
+					'ville'      => ann_setting( 'ville', '' ),
+					'note'       => trim( '[Auto-import] ' . $l['title'] ),
+					'message'    => '',
+					'status'     => 'nouveau',
+					'created'    => current_time( 'Y-m-d H:i' ),
+				);
+				$existing_urls[] = $l['url'];
+				$found++;
+			}
+			@imap_setflag_full( $stream, $num, '\\Seen' );
+		}
+		ann_save_prospects( array_values( $list_prospects ) );
+	}
+	imap_close( $stream );
+	if ( $found > 0 ) {
+		ann_agent_log_add( 'IMAP : ' . $found . ' annonce(s) importee(s)' );
+		if ( ann_tg_configured() ) {
+			ann_tg_push( '📥 <b>' . $found . ' nouvelle(s) annonce(s)</b> importee(s) depuis tes alertes mail. Va sur le CRM pour les completer (telephone manquant).' );
+		}
+	} else {
+		ann_agent_log_add( 'IMAP : aucune nouvelle annonce' );
+	}
+}
+add_action( ANN_CRON_IMAP, 'ann_imap_run' );
+
+/* ===========================================================================
+ * Bookmarklet : capture d'annonce depuis n'importe quel site
+ * ========================================================================= */
+function ann_bookmarklet_js() {
+	$target = admin_url( 'admin.php?page=ann-capture' );
+	return 'javascript:(function(){'
+		. 'var u=location.href,t=document.title,s=window.getSelection().toString(),'
+		. 'r=/(?:(?:\\+|00)33[\\s.-]?|0)[1-9](?:[\\s.-]?\\d{2}){4}/,'
+		. 'pt=document.body.innerText||"",'
+		. 'm=(s||pt).match(r),p=m?m[0]:"",'
+		. 'n=s||(pt.length>300?pt.slice(0,300)+"...":pt);'
+		. 'window.open("' . esc_js( $target ) . '&u="+encodeURIComponent(u)+"&t="+encodeURIComponent(t)+"&p="+encodeURIComponent(p)+"&n="+encodeURIComponent(n.slice(0,500)),"_blank");'
+		. '})();';
+}
+
+/* ===========================================================================
  * Menu admin
  * ========================================================================= */
 add_action( 'admin_menu', 'ann_admin_menu' );
@@ -435,6 +584,8 @@ function ann_admin_menu() {
 		add_submenu_page( 'ann-hub', 'Ambassadeurs', 'Ambassadeurs', 'manage_options', 'ann-ambass', 'ann_render_ambass_page' );
 	}
 	add_submenu_page( 'ann-hub', 'Reglages', 'Reglages', 'manage_options', 'ann-settings', 'ann_render_settings_page' );
+	// Page de capture (cachee du menu, accessible via bookmarklet)
+	add_submenu_page( null, 'Capturer une annonce', 'Capturer', 'manage_options', 'ann-capture', 'ann_render_capture_page' );
 }
 
 function ann_redirect( $page, $args = array() ) {
@@ -596,12 +747,21 @@ add_action( 'admin_post_ann_settings', function () {
 	ann_check_admin();
 	check_admin_referer( 'ann_settings' );
 	$existing = ann_get_settings();
+	// Si mot de passe IMAP vide, garder l'ancien (evite de l'effacer accidentellement)
+	$imap_pass_new = sanitize_text_field( wp_unslash( isset( $_POST['imap_pass'] ) ? $_POST['imap_pass'] : '' ) );
+	if ( '' === $imap_pass_new ) { $imap_pass_new = isset( $existing['imap_pass'] ) ? $existing['imap_pass'] : ''; }
 	$new = array(
 		'ville'        => sanitize_text_field( wp_unslash( isset( $_POST['ville'] ) ? $_POST['ville'] : '' ) ),
 		'cp'           => sanitize_text_field( wp_unslash( isset( $_POST['cp'] ) ? $_POST['cp'] : '' ) ),
 		'tg_token'     => sanitize_text_field( wp_unslash( isset( $_POST['tg_token'] ) ? $_POST['tg_token'] : '' ) ),
 		'tg_chat'      => sanitize_text_field( wp_unslash( isset( $_POST['tg_chat'] ) ? $_POST['tg_chat'] : '' ) ),
 		'cron_morning' => empty( $_POST['cron_morning'] ) ? 0 : 1,
+		'imap_on'      => empty( $_POST['imap_on'] ) ? 0 : 1,
+		'imap_host'    => sanitize_text_field( wp_unslash( isset( $_POST['imap_host'] ) ? $_POST['imap_host'] : '' ) ),
+		'imap_port'    => sanitize_text_field( wp_unslash( isset( $_POST['imap_port'] ) ? $_POST['imap_port'] : '993' ) ),
+		'imap_user'    => sanitize_text_field( wp_unslash( isset( $_POST['imap_user'] ) ? $_POST['imap_user'] : '' ) ),
+		'imap_pass'    => $imap_pass_new,
+		'imap_folder'  => sanitize_text_field( wp_unslash( isset( $_POST['imap_folder'] ) ? $_POST['imap_folder'] : 'INBOX' ) ),
 		'templates'    => isset( $existing['templates'] ) ? $existing['templates'] : array(),
 	);
 	update_option( ANN_SET_OPT, $new );
@@ -620,6 +780,35 @@ add_action( 'admin_post_ann_test_tg', function () {
 	check_admin_referer( 'ann_test_tg' );
 	$ok = ann_tg_push( '✅ Test Anna Photo : Telegram fonctionne !' );
 	ann_redirect( 'ann-settings', array( 'msg' => $ok ? 'tg_ok' : 'tg_ko' ) );
+} );
+
+add_action( 'admin_post_ann_test_imap', function () {
+	ann_check_admin();
+	check_admin_referer( 'ann_test_imap' );
+	$s = ann_imap_connect();
+	if ( is_wp_error( $s ) ) {
+		ann_redirect( 'ann-settings', array( 'msg' => 'imap_ko', 'err' => rawurlencode( $s->get_error_message() ) ) );
+	}
+	$count = @imap_num_msg( $s );
+	imap_close( $s );
+	ann_redirect( 'ann-settings', array( 'msg' => 'imap_ok', 'n' => (int) $count ) );
+} );
+
+add_action( 'admin_post_ann_imap_run', function () {
+	ann_check_admin();
+	check_admin_referer( 'ann_imap_run' );
+	if ( empty( ann_setting( 'imap_on' ) ) ) {
+		// Active temporairement pour ce passage manuel
+		$set = ann_get_settings();
+		$set['imap_on'] = 1;
+		update_option( ANN_SET_OPT, $set );
+		ann_imap_run();
+		$set['imap_on'] = 0;
+		update_option( ANN_SET_OPT, $set );
+	} else {
+		ann_imap_run();
+	}
+	ann_redirect( 'ann-settings', array( 'msg' => 'imap_run' ) );
 } );
 
 add_action( 'admin_post_ann_broadcast', function () {
@@ -681,10 +870,13 @@ function ann_notice() {
 		'bc_ok'    => array( 'success', 'Message Telegram envoye.' ),
 		'bc_ko'    => array( 'error',   'Telegram non configure.' ),
 		'bc_empty' => array( 'error',   'Message vide.' ),
+		'imap_ok'  => array( 'success', 'IMAP : connexion OK (' . (int) ( isset( $_GET['n'] ) ? $_GET['n'] : 0 ) . ' message(s) dans la boite).' ),
+		'imap_ko'  => array( 'error',   'IMAP erreur : ' . esc_html( rawurldecode( wp_unslash( isset( $_GET['err'] ) ? $_GET['err'] : '' ) ) ) ),
+		'imap_run' => array( 'success', 'Import manuel termine. Va voir tes prospects ou le journal.' ),
 	);
 	if ( ! isset( $map[ $m ] ) ) { return; }
 	$cls = 'error' === $map[ $m ][0] ? 'notice-error' : 'notice-success';
-	echo '<div class="notice ' . esc_attr( $cls ) . ' is-dismissible"><p>' . esc_html( $map[ $m ][1] ) . '</p></div>';
+	echo '<div class="notice ' . esc_attr( $cls ) . ' is-dismissible"><p>' . wp_kses_post( $map[ $m ][1] ) . '</p></div>';
 }
 
 /* ===========================================================================
@@ -1406,6 +1598,94 @@ function ann_render_ambass_page() {
 }
 
 /* ===========================================================================
+ * Page : Capture (cible du bookmarklet)
+ * ========================================================================= */
+function ann_render_capture_page() {
+	ann_check_admin();
+	$u  = esc_url_raw( wp_unslash( isset( $_GET['u'] ) ? $_GET['u'] : '' ) );
+	$t  = sanitize_text_field( wp_unslash( isset( $_GET['t'] ) ? $_GET['t'] : '' ) );
+	$p  = sanitize_text_field( wp_unslash( isset( $_GET['p'] ) ? $_GET['p'] : '' ) );
+	$n  = sanitize_textarea_field( wp_unslash( isset( $_GET['n'] ) ? $_GET['n'] : '' ) );
+
+	// Detection source d'apres l'URL
+	$source = 'autre';
+	if ( false !== stripos( $u, 'leboncoin' ) )      { $source = 'leboncoin'; }
+	elseif ( false !== stripos( $u, 'facebook' ) )   { $source = 'facebook'; }
+	elseif ( false !== stripos( $u, 'instagram' ) )  { $source = 'instagram'; }
+	elseif ( false !== stripos( $u, 'twitter.com' ) || false !== stripos( $u, 'x.com' ) ) { $source = 'autre'; }
+	elseif ( false !== stripos( $u, 'google' ) )     { $source = 'google'; }
+
+	$pr = ann_detect_prestation( $n . ' ' . $t );
+	$prestations = ann_prestations();
+	$sources     = ann_sources();
+	$ville_def   = ann_setting( 'ville', '' );
+	$post        = admin_url( 'admin-post.php' );
+	ann_css();
+	?>
+	<div class="wrap ann-wrap">
+		<h1 class="ann-h1">📎 Capturer cette annonce</h1>
+		<div class="ann-help">
+			✅ Verifie les infos detectees (notamment le <strong>telephone</strong>), complete si besoin, puis clique <strong>Ajouter</strong>. Le message s'auto-genere.
+		</div>
+		<?php if ( '' !== $u ) : ?>
+			<div class="ann-card" style="font-size:13px;">
+				<strong>Source detectee :</strong> <?php echo esc_html( isset( $sources[ $source ] ) ? $sources[ $source ] : $source ); ?><br>
+				<strong>URL :</strong> <a href="<?php echo esc_url( $u ); ?>" target="_blank" rel="noopener" style="word-break:break-all;"><?php echo esc_html( $u ); ?></a>
+			</div>
+		<?php endif; ?>
+		<div class="ann-card">
+			<form method="post" action="<?php echo esc_url( $post ); ?>">
+				<input type="hidden" name="action" value="ann_add">
+				<input type="hidden" name="_redir" value="ann-prospects">
+				<?php wp_nonce_field( 'ann_add' ); ?>
+				<div class="ann-grid-2c">
+					<div><label>Prenom (si visible)</label><input type="text" name="prenom" id="ann_prenom"></div>
+					<div><label>Telephone *</label><input type="text" name="phone" required value="<?php echo esc_attr( $p ); ?>" placeholder="06 12 34 56 78"></div>
+					<div class="ann-full"><label>Lien de l'annonce</label><input type="text" name="link" value="<?php echo esc_attr( $u ); ?>"></div>
+					<div class="ann-full"><label>📝 Note (capturee depuis la page)</label>
+						<textarea name="note" id="ann_note" rows="3"><?php echo esc_textarea( '' !== $n ? $n : $t ); ?></textarea>
+					</div>
+					<div><label>Prestation</label><select name="prestation" id="ann_prestation">
+						<option value="auto">🤖 Auto (depuis la note)</option>
+						<?php foreach ( $prestations as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>" <?php selected( $k, $pr ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Source</label><select name="source">
+						<?php foreach ( $sources as $k => $label ) : ?><option value="<?php echo esc_attr( $k ); ?>" <?php selected( $k, $source ); ?>><?php echo esc_html( $label ); ?></option><?php endforeach; ?>
+					</select></div>
+					<div><label>Ville</label><input type="text" name="ville" id="ann_ville" value="<?php echo esc_attr( $ville_def ); ?>"></div>
+					<div class="ann-full"><label>Message a envoyer (auto)</label>
+						<textarea name="message" id="ann_message" rows="4"></textarea>
+						<button type="button" class="button" onclick="annRegen()" style="margin-top:6px;">🔄 Regenerer depuis la note</button>
+					</div>
+				</div>
+				<p style="margin-top:14px;">
+					<button type="submit" class="button button-primary button-hero">+ Ajouter au CRM</button>
+					<a href="<?php echo esc_url( admin_url( 'admin.php?page=ann-prospects' ) ); ?>" class="button">Annuler</a>
+				</p>
+			</form>
+		</div>
+	</div>
+	<script>
+	var ANN_TPL = <?php echo wp_json_encode( ann_tpl_data() ); ?>;
+	var ANN_DETECT = <?php echo wp_json_encode( array(
+		'grossesse' => array( 'grossesse', 'enceinte', 'maternit', 'futur maman' ),
+		'mariage'   => array( 'mariage', 'mariee', 'marie', 'wedding' ),
+		'couple'    => array( 'evjf', 'evjg', 'enterrement vie', 'couple ' ),
+		'famille'   => array( 'famille', 'enfant', 'bebe', 'naissance', 'bapteme' ),
+		'portrait'  => array( 'portrait', 'book ', 'corporate' ),
+		'evenement' => array( 'anniversaire', 'evenement', 'soiree' ),
+	) ); ?>;
+	var ANN_VAR = 0;
+	function annDetect(note){var n=(note||'').toLowerCase();for(var k in ANN_DETECT){var ws=ANN_DETECT[k];for(var i=0;i<ws.length;i++){if(n.indexOf(ws[i])!==-1)return k;}}return 'autre';}
+	function annCurrentPrestation(){var s=document.getElementById('ann_prestation');var v=s?s.value:'autre';if(v==='auto'){v=annDetect((document.getElementById('ann_note')||{}).value||'');}return v;}
+	function annFill(){var prest=annCurrentPrestation();var prenom=((document.getElementById('ann_prenom')||{}).value||'').trim();var ville=((document.getElementById('ann_ville')||{}).value||'').trim()||'votre region';var note=((document.getElementById('ann_note')||{}).value||'').trim();var set=ANN_TPL[prest]||ANN_TPL['autre']||[''];if(!Array.isArray(set))set=[String(set)];var msg=set[ANN_VAR%set.length]||'';msg=msg.split('{prenom}').join(prenom).split('{ville}').join(ville).split('{note}').join(note);msg=msg.replace(/\s{2,}/g,' ').trim();var t=document.getElementById('ann_message');if(t)t.value=msg;}
+	function annRegen(){ANN_VAR++;annFill();}
+	document.addEventListener('DOMContentLoaded',function(){['ann_prestation','ann_prenom','ann_ville','ann_note'].forEach(function(id){var el=document.getElementById(id);if(el){el.addEventListener('change',function(){ANN_VAR=0;annFill();});el.addEventListener('keyup',annFill);}});annFill();});
+	</script>
+	<?php
+}
+
+/* ===========================================================================
  * Page : Reglages
  * ========================================================================= */
 function ann_render_settings_page() {
@@ -1454,6 +1734,61 @@ function ann_render_settings_page() {
 			<?php wp_nonce_field( 'ann_test_tg' ); ?>
 			<button type="submit" class="button">📤 Envoyer un message de test Telegram</button>
 		</form>
+
+		<!-- BOOKMARKLET -->
+		<div class="ann-card" style="margin-top:24px;">
+			<h2 style="margin-top:0;">📎 Bookmarklet « Capturer cette annonce »</h2>
+			<p>Glisse le bouton ci-dessous dans ta <strong>barre de favoris</strong>. Ensuite, quand tu trouves une annonce (Leboncoin, Facebook, Insta, n'importe ou) avec un numero affiche, clique le bouton dans tes favoris : un onglet s'ouvre avec le formulaire <strong>pre-rempli</strong> (URL, telephone detecte, prestation auto). Tu confirmes, c'est ajoute.</p>
+			<p>
+				<a href="<?php echo esc_attr( ann_bookmarklet_js() ); ?>" class="button button-primary button-hero" style="padding:14px 22px;font-size:15px;">📎 Capturer — Anna Photo</a>
+				&nbsp;<span style="color:#64748b;font-size:13px;">⬅️ Glisse ce bouton dans ta barre de favoris</span>
+			</p>
+			<details style="margin-top:10px;">
+				<summary style="cursor:pointer;color:#64748b;">Code (pour les curieux)</summary>
+				<textarea readonly style="width:100%;font-family:monospace;font-size:11px;height:80px;margin-top:8px;"><?php echo esc_textarea( ann_bookmarklet_js() ); ?></textarea>
+			</details>
+		</div>
+
+		<!-- IMAP -->
+		<form method="post" action="<?php echo esc_url( $post ); ?>" class="ann-card" style="margin-top:24px;">
+			<input type="hidden" name="action" value="ann_settings">
+			<?php wp_nonce_field( 'ann_settings' ); ?>
+			<h2 style="margin-top:0;">📥 Import auto via alertes mail (IMAP)</h2>
+			<?php if ( ! ann_imap_available() ) : ?>
+				<div class="notice notice-warning inline" style="margin:0 0 10px;"><p>⚠️ L'extension PHP <code>imap</code> n'est pas installee sur ce serveur. Cette section ne fonctionnera pas. Contacte ton hebergeur (Hostinger) pour l'activer.</p></div>
+			<?php endif; ?>
+			<p>
+				<strong>Comment ca marche :</strong><br>
+				1) Sur Leboncoin, Mariages.net, etc. : cree tes alertes de recherche (« cherche photographe mariage 44 ») et coche <em>« Recevoir les nouvelles annonces par mail »</em>.<br>
+				2) Configure ici les acces IMAP de la boite qui recoit ces alertes (un Gmail dedie est ideal).<br>
+				3) Le plugin lit la boite chaque heure, importe automatiquement les nouvelles annonces dans le CRM (sans le telephone — clique l'annonce sur le site pour le voir, puis complete dans le CRM).
+			</p>
+			<p style="color:#64748b;font-size:12px;">⚠️ Pour Gmail : active <em>l'acces IMAP</em> dans les parametres + cree un <strong>mot de passe d'application</strong> (myaccount.google.com/apppasswords) au lieu de ton mot de passe principal.</p>
+			<table class="form-table"><tbody>
+				<tr><th>Activer l'import auto</th><td>
+					<label><input type="checkbox" name="imap_on" value="1" <?php checked( 1, (int) ( $s['imap_on'] ?? 0 ) ); ?> <?php disabled( ! ann_imap_available() ); ?>> Lire les alertes mail toutes les heures et importer les annonces</label>
+				</td></tr>
+				<tr><th>Serveur IMAP</th><td><input type="text" name="imap_host" value="<?php echo esc_attr( $s['imap_host'] ?? '' ); ?>" placeholder="imap.gmail.com" style="width:300px;"></td></tr>
+				<tr><th>Port</th><td><input type="text" name="imap_port" value="<?php echo esc_attr( $s['imap_port'] ?? '993' ); ?>" placeholder="993" style="width:80px;"> <span style="color:#64748b;">(993 = SSL/TLS)</span></td></tr>
+				<tr><th>Identifiant (email)</th><td><input type="text" name="imap_user" value="<?php echo esc_attr( $s['imap_user'] ?? '' ); ?>" placeholder="prospects@gmail.com" style="width:300px;"></td></tr>
+				<tr><th>Mot de passe</th><td><input type="password" name="imap_pass" value="" autocomplete="new-password" placeholder="<?php echo ! empty( $s['imap_pass'] ) ? '••••••••' : 'mot de passe ou app password'; ?>" style="width:300px;"><br><small style="color:#64748b;">Laisse vide pour garder le mot de passe actuel.</small></td></tr>
+				<tr><th>Dossier</th><td><input type="text" name="imap_folder" value="<?php echo esc_attr( $s['imap_folder'] ?? 'INBOX' ); ?>" placeholder="INBOX" style="width:200px;"></td></tr>
+			</tbody></table>
+			<p><button class="button button-primary">Enregistrer IMAP</button></p>
+		</form>
+
+		<div style="max-width:980px;display:flex;gap:8px;flex-wrap:wrap;">
+			<form method="post" action="<?php echo esc_url( $post ); ?>">
+				<input type="hidden" name="action" value="ann_test_imap">
+				<?php wp_nonce_field( 'ann_test_imap' ); ?>
+				<button class="button">🔌 Tester la connexion IMAP</button>
+			</form>
+			<form method="post" action="<?php echo esc_url( $post ); ?>">
+				<input type="hidden" name="action" value="ann_imap_run">
+				<?php wp_nonce_field( 'ann_imap_run' ); ?>
+				<button class="button">📥 Lancer un import maintenant</button>
+			</form>
+		</div>
 	</div>
 	<?php
 }
