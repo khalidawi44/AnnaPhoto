@@ -1,11 +1,11 @@
 /*
 Theme Name:     Anna Photo — Child
 Theme URI:      https://annaphoto.eu
-Template:       1001photo
-Description:    Child theme personnalise pour annaphoto.eu, versionne dans le repo GitHub. Toutes les modifications CSS et fonctions personnelles vont ici. Le theme parent 1001photo reste intouche.
+Template:       bard
+Description:    Child theme personnalise pour annaphoto.eu, versionne dans le repo GitHub. Herite du parent Bard. Toutes les modifications CSS et fonctions personnelles vont ici — le parent reste intouche.
 Author:         Anna Photo
 Author URI:     https://annaphoto.eu
-Version:        1.0.0
+Version:        1.0.1
 License:        GNU General Public License v2 or later
 License URI:    http://www.gnu.org/licenses/gpl-2.0.html
 Text Domain:    annaphoto-child
