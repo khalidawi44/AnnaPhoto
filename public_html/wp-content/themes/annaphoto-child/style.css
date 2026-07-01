@@ -1,0 +1,111 @@
+/*
+Theme Name:     Anna Photo — Child
+Theme URI:      https://annaphoto.eu
+Template:       1001photo
+Description:    Child theme personnalise pour annaphoto.eu, versionne dans le repo GitHub. Toutes les modifications CSS et fonctions personnelles vont ici. Le theme parent 1001photo reste intouche.
+Author:         Anna Photo
+Author URI:     https://annaphoto.eu
+Version:        1.0.0
+License:        GNU General Public License v2 or later
+License URI:    http://www.gnu.org/licenses/gpl-2.0.html
+Text Domain:    annaphoto-child
+Tags:           photography, portfolio, custom
+*/
+
+/* ===========================================================================
+ * Anna Photo — Child theme CSS
+ *
+ * Astuces :
+ * - Toutes les regles ci-dessous ecrasent celles du parent 1001photo.
+ * - Utilise !important seulement si le parent utilise deja des styles inline
+ *   ou tres specifiques, sinon evite (ca rend le debug plus dur).
+ * - Pour organiser proprement : mets les gros blocs dans assets/css/*.css
+ *   et importe-les depuis functions.php (voir plus bas).
+ * ========================================================================= */
+
+/* -----------------------------------------------------------------------
+ * 1. Variables globales (couleurs, tailles, polices...)
+ * ----------------------------------------------------------------------- */
+:root {
+    /* Couleurs principales Anna Photo */
+    --ap-color-primary:    #d4a5a5;   /* rose poudre principal */
+    --ap-color-accent:     #8b6f6f;   /* accent plus fonce */
+    --ap-color-text:       #2a2a2a;   /* texte de base */
+    --ap-color-text-soft:  #6b6b6b;   /* texte secondaire */
+    --ap-color-bg:         #fdf8f5;   /* fond creme */
+    --ap-color-bg-alt:     #ffffff;   /* fond alternatif */
+
+    /* Espacements */
+    --ap-space-xs: 8px;
+    --ap-space-sm: 16px;
+    --ap-space-md: 24px;
+    --ap-space-lg: 48px;
+    --ap-space-xl: 96px;
+
+    /* Rayons de bordure */
+    --ap-radius-sm: 4px;
+    --ap-radius-md: 8px;
+    --ap-radius-lg: 16px;
+}
+
+
+/* -----------------------------------------------------------------------
+ * 2. Header — logo aligne a gauche
+ * (le fix qu'on avait fait en CSS additionnel, deplace ici pour etre versionne)
+ * ----------------------------------------------------------------------- */
+/* Adapte le selecteur si necessaire une fois le parent installe */
+.site-branding,
+.custom-logo-link,
+.site-header .logo {
+    text-align: left !important;
+    margin-left: 0 !important;
+}
+
+
+/* -----------------------------------------------------------------------
+ * 3. Placeholders — decommente pour activer
+ * ----------------------------------------------------------------------- */
+
+/* --- Boutons plus arrondis et plus gros ---
+.wp-block-button__link,
+.button,
+button {
+    border-radius: var(--ap-radius-md);
+    padding: 14px 28px;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+}
+*/
+
+/* --- Titres en Cormorant Garamond ---
+h1, h2, h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+}
+*/
+
+/* --- Galerie FooGallery en 4 colonnes desktop, 2 mobile ---
+.foogallery.fg-preset {
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--ap-space-sm);
+}
+@media (max-width: 768px) {
+    .foogallery.fg-preset {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+*/
+
+/* --- Menu mobile burger plus visible ---
+.mobile-menu-toggle {
+    font-size: 28px;
+    color: var(--ap-color-accent);
+}
+*/
+
+
+/* -----------------------------------------------------------------------
+ * 4. Espace pour tes futurs styles personnalises
+ * ----------------------------------------------------------------------- */
+/* Ajoute tes regles ici ou dans assets/css/custom.css */

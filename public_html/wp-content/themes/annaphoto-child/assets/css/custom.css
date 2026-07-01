@@ -1,0 +1,13 @@
+/*
+ * Custom CSS — Anna Photo child
+ * Charge automatiquement par functions.php apres le style.css principal.
+ * Utilise ce fichier pour tes gros blocs de styles (pages specifiques,
+ * sections lourdes) afin de garder style.css leger et lisible.
+ */
+
+/* Exemple : styles specifiques a la page "Qui suis je"
+.page-qui-suis-je .site-content {
+    background: var(--ap-color-bg);
+    padding: var(--ap-space-xl) 0;
+}
+*/
