@@ -106,29 +106,46 @@ h1, h2, h3 {
 
 
 /* -----------------------------------------------------------------------
- * 4. Container hero (Bard .cv-inner) — hauteur ajustee pour matcher
- *    le ratio 2.6:1 de la banniere (1520x585 au lieu de 1520x450 par
- *    defaut du parent). Aucune deformation, aucun rognage.
+ * 4. Container hero (Bard) — banniere ENTIERE visible sans deformation
+ *    Ratio image = 1520 / 585 = 2.6:1. On force le container au meme
+ *    ratio pour que rien ne soit rogne ou etire.
  * ----------------------------------------------------------------------- */
+.entry-header,
+.entry-header .cv-outer,
+.entry-header .cv-inner,
+#page-header .cv-outer,
+#page-header .cv-inner,
 .cv-outer,
 .cv-inner {
-    height: 585px !important;
-}
-.cv-inner img,
-.cv-outer img {
-    object-fit: contain;
-    object-position: center;
-    width: 100%;
-    height: 100%;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    aspect-ratio: 1520 / 585 !important;
+    padding: 0 !important;
 }
 
-/* Responsive : sur mobile on garde le ratio en auto (hauteur proportionnelle a la largeur) */
-@media (max-width: 900px) {
-    .cv-outer,
-    .cv-inner {
-        height: auto !important;
-        aspect-ratio: 1520 / 585;
-    }
+/* Force l'image a s'afficher entierement, sans crop */
+.cv-outer img,
+.cv-inner img,
+.entry-header img,
+#page-header img,
+.custom-header img,
+.custom-header-media img,
+.wp-custom-header img {
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+    object-position: center center !important;
+    display: block !important;
+}
+
+/* Backgrounds appliques par le theme via CSS -> contain aussi */
+.cv-outer[style*="background"],
+.cv-inner[style*="background"],
+.entry-header[style*="background"] {
+    background-size: contain !important;
+    background-repeat: no-repeat !important;
+    background-position: center center !important;
 }
 
 /* -----------------------------------------------------------------------
