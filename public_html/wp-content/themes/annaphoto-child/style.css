@@ -218,6 +218,71 @@ h1, h2, h3 {
 }
 
 /* -----------------------------------------------------------------------
- * 6. Espace pour tes futurs styles personnalises
+ * 6. Header transparent + hide-on-scroll + show-on-scroll-up
+ *    JS ajoute .ap-scroll-header sur le header, puis on toggle :
+ *    - .ap-at-top   : en haut de page (transparent)
+ *    - .ap-visible  : visible (avec fond couleur theme)
+ *    - .ap-hidden   : cache (translateY -100%)
+ * ----------------------------------------------------------------------- */
+.ap-scroll-header {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 999;
+    transition:
+        transform .35s cubic-bezier(.4, 0, .2, 1),
+        background-color .35s ease,
+        box-shadow .35s ease,
+        backdrop-filter .35s ease;
+    background: transparent;
+    box-shadow: none;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+}
+
+/* Etat "en haut de page" : transparent, aucun fond */
+.ap-scroll-header.ap-at-top {
+    background: transparent !important;
+    box-shadow: none !important;
+    -webkit-backdrop-filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Etat "visible" apres scroll : fond rose du theme avec leger blur */
+.ap-scroll-header.ap-visible:not(.ap-at-top) {
+    background: rgba(253, 232, 232, 0.92) !important;
+    -webkit-backdrop-filter: saturate(180%) blur(12px);
+    backdrop-filter: saturate(180%) blur(12px);
+    box-shadow: 0 2px 20px rgba(212, 165, 165, 0.18);
+}
+
+/* Etat "cache" : translate hors ecran vers le haut */
+.ap-scroll-header.ap-hidden {
+    transform: translateY(-105%);
+}
+
+/* Sur mobile : legerement plus opaque pour lisibilite */
+@media (max-width: 900px) {
+    .ap-scroll-header.ap-visible:not(.ap-at-top) {
+        background: rgba(253, 232, 232, 0.97) !important;
+    }
+}
+
+/* Respect des preferences utilisateur (moins d'animations) */
+@media (prefers-reduced-motion: reduce) {
+    .ap-scroll-header {
+        transition: background-color .15s ease, box-shadow .15s ease;
+    }
+    .ap-scroll-header.ap-hidden {
+        transform: none;
+        opacity: 0;
+        pointer-events: none;
+    }
+}
+
+/* -----------------------------------------------------------------------
+ * 7. Espace pour tes futurs styles personnalises
  * ----------------------------------------------------------------------- */
 /* Ajoute tes regles ici ou dans assets/css/custom.css */
