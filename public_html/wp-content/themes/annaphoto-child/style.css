@@ -149,6 +149,75 @@ h1, h2, h3 {
 }
 
 /* -----------------------------------------------------------------------
- * 5. Espace pour tes futurs styles personnalises
+ * 5. Bouton "Retour en haut" (back to top)
+ * ----------------------------------------------------------------------- */
+#ap-back-to-top {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 0;
+    background: linear-gradient(135deg, #f7c4c4 0%, #d4a5a5 100%);
+    color: #fff;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(212, 165, 165, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(20px);
+    transition: opacity .3s ease, visibility .3s ease, transform .3s ease, box-shadow .2s ease, background .2s ease;
+    z-index: 9999;
+    padding: 0;
+}
+#ap-back-to-top.is-visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+#ap-back-to-top:hover {
+    box-shadow: 0 10px 28px rgba(212, 165, 165, 0.6);
+    background: linear-gradient(135deg, #d4a5a5 0%, #8b6f6f 100%);
+    transform: translateY(-3px);
+}
+#ap-back-to-top:active {
+    transform: translateY(-1px);
+}
+#ap-back-to-top:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+}
+#ap-back-to-top svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* Mobile : bouton un peu plus petit et plus proche du bord */
+@media (max-width: 600px) {
+    #ap-back-to-top {
+        right: 16px;
+        bottom: 16px;
+        width: 46px;
+        height: 46px;
+    }
+    #ap-back-to-top svg {
+        width: 20px;
+        height: 20px;
+    }
+}
+
+/* Respect des preferences utilisateur (moins d'animations) */
+@media (prefers-reduced-motion: reduce) {
+    #ap-back-to-top {
+        transition: opacity .15s ease, visibility .15s ease;
+        transform: none !important;
+    }
+}
+
+/* -----------------------------------------------------------------------
+ * 6. Espace pour tes futurs styles personnalises
  * ----------------------------------------------------------------------- */
 /* Ajoute tes regles ici ou dans assets/css/custom.css */
