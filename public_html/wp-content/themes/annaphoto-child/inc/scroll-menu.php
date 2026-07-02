@@ -13,7 +13,10 @@ function annaphoto_scroll_menu_script() {
 	<script>
 	(function () {
 		// Trouve le header du site (premier match dans la liste)
+		// Bard utilise <nav class="top-menu-container"> pour le menu principal.
 		var selectors = [
+			'.top-menu-container',
+			'nav.top-menu-container',
 			'#site-nav',
 			'.site-nav',
 			'.site-header',
