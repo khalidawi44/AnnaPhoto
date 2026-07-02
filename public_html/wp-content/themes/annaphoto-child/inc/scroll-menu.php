@@ -35,6 +35,15 @@ function annaphoto_scroll_menu_script() {
 		if (!nav) return;
 		nav.classList.add('site-nav');
 
+		// IMPORTANT : deplacer le nav en enfant direct de <body> pour
+		// echapper a tout stacking context d'ancetre (transform, filter,
+		// position:sticky, contain, etc.) qui piegerait notre z-index.
+		// Cela garantit que le nav est TOUJOURS au-dessus du contenu,
+		// quelle que soit la structure de la page.
+		if (nav.parentElement !== document.body) {
+			document.body.insertBefore(nav, document.body.firstChild);
+		}
+
 		var lastY = window.pageYOffset;
 		var ticking = false;
 
