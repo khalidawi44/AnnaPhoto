@@ -219,100 +219,66 @@ h1, h2, h3 {
 
 /* -----------------------------------------------------------------------
  * 6. Sticky nav — transparent au top, opaque au scroll, cache au scroll-down
- *    Logique et classes du template Alliance Groupe adaptees aux tons roses.
- *    JS ajoute .site-nav sur le header + toggle .is-scrolled / .is-hidden
+ *    IMPORTANT : ce bloc est ENTIEREMENT scope en desktop uniquement
+ *    (>= 901px). Sur mobile, AUCUNE de mes regles ne s'applique -> Bard
+ *    gere son menu mobile (hamburger + drawer) sans interference.
+ *    Le JS aussi retourne early sur mobile (voir inc/scroll-menu.php).
  * ----------------------------------------------------------------------- */
-.site-nav {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    right: 0;
-    width: 100%;
-    z-index: 99999 !important;
-    padding: 14px 0;
-    background: transparent;
-    transition:
-        background .4s ease,
-        padding .4s ease,
-        box-shadow .4s ease,
-        transform .45s cubic-bezier(.16, 1, .3, 1);
-    will-change: transform;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    isolation: isolate;
-    transform: translateZ(0);
-
-    /* Centrage des items du menu */
-    display: flex !important;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    box-sizing: border-box;
-}
-
-/* Force le container interne (ul du menu principal Bard) a centrer aussi */
-.site-nav > *,
-.site-nav ul,
-.site-nav .top-menu,
-.site-nav .navigation {
-    margin-left: auto !important;
-    margin-right: auto !important;
-    justify-content: center !important;
-    text-align: center !important;
-}
-
-/* Decale sous l'admin bar WP */
-body.admin-bar .site-nav { top: 32px; }
-@media (max-width: 782px) {
-    body.admin-bar .site-nav { top: 46px; }
-}
-
-/* ETAT 1 — on a scrolle : fond rose OPAQUE (aucune transparence) */
-.site-nav.is-scrolled {
-    background: #fde8e8 !important;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
-    padding: 8px 0;
-    box-shadow: 0 4px 24px rgba(139, 111, 111, 0.15);
-}
-
-/* ETAT 2 — on descend : la barre se cache vers le haut */
-.site-nav.is-hidden {
-    transform: translateY(-100%);
-}
-
-/* Mobile : REVERT toutes mes surcharges pour laisser Bard gerer son
-   propre menu (hamburger + drawer). Sinon le menu mobile est casse. */
-@media (max-width: 900px) {
+@media (min-width: 901px) {
     .site-nav {
-        position: static !important;
-        display: revert !important;
-        justify-content: revert !important;
-        align-items: revert !important;
-        text-align: revert !important;
-        background: revert !important;
-        padding: revert !important;
-        box-shadow: none !important;
-        transform: none !important;
-        z-index: auto !important;
-        isolation: auto !important;
-        will-change: auto !important;
-        top: auto !important;
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 99999 !important;
+        padding: 14px 0;
+        background: transparent;
+        transition:
+            background .4s ease,
+            padding .4s ease,
+            box-shadow .4s ease,
+            transform .45s cubic-bezier(.16, 1, .3, 1);
+        will-change: transform;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        isolation: isolate;
+        transform: translateZ(0);
+
+        /* Centrage des items du menu */
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        box-sizing: border-box;
     }
+
+    /* Force le container interne (ul du menu principal Bard) a centrer */
     .site-nav > *,
     .site-nav ul,
     .site-nav .top-menu,
     .site-nav .navigation {
-        margin: revert !important;
-        justify-content: revert !important;
-        text-align: revert !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        justify-content: center !important;
+        text-align: center !important;
     }
-    .site-nav.is-scrolled,
+
+    /* Decale sous l'admin bar WP */
+    body.admin-bar .site-nav { top: 32px; }
+
+    /* ETAT 1 — on a scrolle : fond rose OPAQUE (aucune transparence) */
+    .site-nav.is-scrolled {
+        background: #fde8e8 !important;
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+        padding: 8px 0;
+        box-shadow: 0 4px 24px rgba(139, 111, 111, 0.15);
+    }
+
+    /* ETAT 2 — on descend : la barre se cache vers le haut */
     .site-nav.is-hidden {
-        background: revert !important;
-        transform: none !important;
-        padding: revert !important;
-        box-shadow: none !important;
+        transform: translateY(-100%);
     }
 }
 
@@ -330,9 +296,10 @@ body.admin-bar .site-nav { top: 32px; }
 
 /* -----------------------------------------------------------------------
  * 7. Icone "retweet" (Font Awesome) — style theme Anna Photo
- *    Font Awesome par defaut = look tech un peu brut, on l'adoucit :
- *    dans un cercle doux rose, avec hover rotation elegante.
+ *    Desktop uniquement : sur mobile Bard peut utiliser cette icone
+ *    pour son toggle burger, on ne le customise pas.
  * ----------------------------------------------------------------------- */
+@media (min-width: 901px) {
 .fa-retweet,
 .fas.fa-retweet,
 i.fa-retweet,
@@ -376,16 +343,6 @@ button:has(> .fa-retweet) {
     padding: 4px !important;
 }
 
-/* Mobile : icone un peu plus petite */
-@media (max-width: 600px) {
-    .fa-retweet,
-    .fas.fa-retweet {
-        width: 32px;
-        height: 32px;
-        font-size: 13px;
-    }
-}
-
 /* Preferences reduced-motion */
 @media (prefers-reduced-motion: reduce) {
     .fa-retweet,
@@ -397,6 +354,7 @@ button:has(> .fa-retweet) {
         transform: none;
     }
 }
+} /* fin @media (min-width: 901px) pour icone retweet */
 
 /* -----------------------------------------------------------------------
  * 8. Espace pour tes futurs styles personnalises
