@@ -280,6 +280,23 @@ h1, h2, h3 {
     .site-nav.is-hidden {
         transform: translateY(-100%);
     }
+
+    /* Couleur et taille du texte du menu (desktop uniquement) */
+    .site-nav a,
+    .site-nav ul li a,
+    .site-nav #top-menu li a,
+    .site-nav .menu-item a {
+        color: #000 !important;
+        font-size: 14px !important;
+    }
+    /* Etat hover / actif : garde noir mais plus marque */
+    .site-nav a:hover,
+    .site-nav ul li a:hover,
+    .site-nav .current-menu-item > a,
+    .site-nav .current_page_item > a {
+        color: #000 !important;
+        opacity: 0.7;
+    }
 }
 
 /* Preferences reduced-motion */
