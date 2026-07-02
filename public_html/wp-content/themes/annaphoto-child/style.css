@@ -229,7 +229,7 @@ h1, h2, h3 {
     right: 0;
     width: 100%;
     z-index: 99999 !important;
-    padding: 16px 0;
+    padding: 14px 0;
     background: transparent;
     transition:
         background .4s ease,
@@ -239,31 +239,41 @@ h1, h2, h3 {
     will-change: transform;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
-    /* Isolation : cree un stacking context propre au-dessus de tout */
     isolation: isolate;
     transform: translateZ(0);
+
+    /* Centrage des items du menu */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-sizing: border-box;
 }
 
-/* Force tous les enfants du menu a rester au-dessus */
-.site-nav * {
-    position: relative;
-    z-index: 1;
+/* Force le container interne (ul du menu principal Bard) a centrer aussi */
+.site-nav > *,
+.site-nav ul,
+.site-nav .top-menu,
+.site-nav .navigation {
+    margin-left: auto !important;
+    margin-right: auto !important;
+    justify-content: center !important;
+    text-align: center !important;
 }
 
-/* Ajoute une marge en haut de body pour que la barre fixed ne recouvre
-   pas le tout premier element (evite que le hero soit cache derriere) */
+/* Decale sous l'admin bar WP */
 body.admin-bar .site-nav { top: 32px; }
 @media (max-width: 782px) {
     body.admin-bar .site-nav { top: 46px; }
 }
 
-/* ETAT 1 — on a scrolle : fond rose opaque + flou (verre depoli) */
+/* ETAT 1 — on a scrolle : fond rose OPAQUE (aucune transparence) */
 .site-nav.is-scrolled {
-    background: rgba(253, 232, 232, 0.95) !important;
-    -webkit-backdrop-filter: blur(18px) saturate(180%);
-    backdrop-filter: blur(18px) saturate(180%);
-    padding: 10px 0;
-    box-shadow: 0 2px 30px rgba(212, 165, 165, 0.25);
+    background: #fde8e8 !important;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    padding: 8px 0;
+    box-shadow: 0 4px 24px rgba(139, 111, 111, 0.15);
 }
 
 /* ETAT 2 — on descend : la barre se cache vers le haut */
@@ -271,10 +281,10 @@ body.admin-bar .site-nav { top: 32px; }
     transform: translateY(-100%);
 }
 
-/* Mobile : legerement plus opaque pour lisibilite */
+/* Mobile */
 @media (max-width: 900px) {
     .site-nav.is-scrolled {
-        background: rgba(253, 232, 232, 0.98) !important;
+        background: #fde8e8 !important;
     }
 }
 
