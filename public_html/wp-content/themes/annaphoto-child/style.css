@@ -283,6 +283,76 @@ h1, h2, h3 {
 }
 
 /* -----------------------------------------------------------------------
- * 7. Espace pour tes futurs styles personnalises
+ * 7. Icone "retweet" (Font Awesome) — style theme Anna Photo
+ *    Font Awesome par defaut = look tech un peu brut, on l'adoucit :
+ *    dans un cercle doux rose, avec hover rotation elegante.
+ * ----------------------------------------------------------------------- */
+.fa-retweet,
+.fas.fa-retweet,
+i.fa-retweet,
+i.fas.fa-retweet {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f7c4c4 0%, #d4a5a5 100%);
+    color: #fff;
+    font-size: 15px;
+    box-shadow: 0 2px 8px rgba(212, 165, 165, 0.3);
+    transition: transform .4s cubic-bezier(.4, 0, .2, 1),
+                box-shadow .3s ease,
+                background .3s ease;
+    cursor: pointer;
+    vertical-align: middle;
+}
+
+.fa-retweet:hover,
+.fas.fa-retweet:hover,
+a:hover > .fa-retweet,
+a:hover > .fas.fa-retweet,
+button:hover > .fa-retweet,
+button:hover > .fas.fa-retweet {
+    transform: rotate(180deg);
+    background: linear-gradient(135deg, #d4a5a5 0%, #8b6f6f 100%);
+    box-shadow: 0 4px 14px rgba(139, 111, 111, 0.4);
+    color: #fff;
+}
+
+/* Si l'icone est dans un lien/bouton, on enleve tout le style bordure/fond
+   du parent pour eviter les doublons visuels */
+a:has(> .fa-retweet),
+button:has(> .fa-retweet) {
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 4px !important;
+}
+
+/* Mobile : icone un peu plus petite */
+@media (max-width: 600px) {
+    .fa-retweet,
+    .fas.fa-retweet {
+        width: 32px;
+        height: 32px;
+        font-size: 13px;
+    }
+}
+
+/* Preferences reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .fa-retweet,
+    .fas.fa-retweet {
+        transition: box-shadow .2s ease, background .2s ease;
+    }
+    .fa-retweet:hover,
+    .fas.fa-retweet:hover {
+        transform: none;
+    }
+}
+
+/* -----------------------------------------------------------------------
+ * 8. Espace pour tes futurs styles personnalises
  * ----------------------------------------------------------------------- */
 /* Ajoute tes regles ici ou dans assets/css/custom.css */
