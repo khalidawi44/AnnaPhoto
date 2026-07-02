@@ -27,6 +27,12 @@ function annaphoto_scroll_menu_script() {
 			'.main-header',
 			'body > header'
 		];
+		// Mobile : on ne touche pas au menu, Bard a sa propre structure
+		// (hamburger + drawer) qu'on casserait en la deplacant ou en
+		// forcant flex/center.
+		var isMobile = window.matchMedia('(max-width: 900px)').matches;
+		if (isMobile) return;
+
 		var nav = null;
 		for (var i = 0; i < selectors.length; i++) {
 			nav = document.querySelector(selectors[i]);
@@ -35,11 +41,9 @@ function annaphoto_scroll_menu_script() {
 		if (!nav) return;
 		nav.classList.add('site-nav');
 
-		// IMPORTANT : deplacer le nav en enfant direct de <body> pour
-		// echapper a tout stacking context d'ancetre (transform, filter,
-		// position:sticky, contain, etc.) qui piegerait notre z-index.
-		// Cela garantit que le nav est TOUJOURS au-dessus du contenu,
-		// quelle que soit la structure de la page.
+		// Deplacer le nav en enfant direct de <body> pour echapper aux
+		// stacking contexts d'ancetres (data-sidebar-sticky, transform,
+		// filter, contain, etc.). Desktop uniquement.
 		if (nav.parentElement !== document.body) {
 			document.body.insertBefore(nav, document.body.firstChild);
 		}

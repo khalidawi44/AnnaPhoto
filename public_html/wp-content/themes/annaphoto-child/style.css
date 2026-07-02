@@ -281,10 +281,38 @@ body.admin-bar .site-nav { top: 32px; }
     transform: translateY(-100%);
 }
 
-/* Mobile */
+/* Mobile : REVERT toutes mes surcharges pour laisser Bard gerer son
+   propre menu (hamburger + drawer). Sinon le menu mobile est casse. */
 @media (max-width: 900px) {
-    .site-nav.is-scrolled {
-        background: #fde8e8 !important;
+    .site-nav {
+        position: static !important;
+        display: revert !important;
+        justify-content: revert !important;
+        align-items: revert !important;
+        text-align: revert !important;
+        background: revert !important;
+        padding: revert !important;
+        box-shadow: none !important;
+        transform: none !important;
+        z-index: auto !important;
+        isolation: auto !important;
+        will-change: auto !important;
+        top: auto !important;
+    }
+    .site-nav > *,
+    .site-nav ul,
+    .site-nav .top-menu,
+    .site-nav .navigation {
+        margin: revert !important;
+        justify-content: revert !important;
+        text-align: revert !important;
+    }
+    .site-nav.is-scrolled,
+    .site-nav.is-hidden {
+        background: revert !important;
+        transform: none !important;
+        padding: revert !important;
+        box-shadow: none !important;
     }
 }
 
