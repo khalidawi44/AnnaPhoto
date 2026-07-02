@@ -227,7 +227,8 @@ h1, h2, h3 {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 1000;
+    width: 100%;
+    z-index: 99999 !important;
     padding: 16px 0;
     background: transparent;
     transition:
@@ -238,6 +239,22 @@ h1, h2, h3 {
     will-change: transform;
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
+    /* Isolation : cree un stacking context propre au-dessus de tout */
+    isolation: isolate;
+    transform: translateZ(0);
+}
+
+/* Force tous les enfants du menu a rester au-dessus */
+.site-nav * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Ajoute une marge en haut de body pour que la barre fixed ne recouvre
+   pas le tout premier element (evite que le hero soit cache derriere) */
+body.admin-bar .site-nav { top: 32px; }
+@media (max-width: 782px) {
+    body.admin-bar .site-nav { top: 46px; }
 }
 
 /* ETAT 1 — on a scrolle : fond rose opaque + flou (verre depoli) */
