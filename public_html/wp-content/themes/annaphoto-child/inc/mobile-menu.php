@@ -63,8 +63,8 @@ function annaphoto_mobile_menu_html() {
 			<span class="ap-mm-title">📸 Anna Photo</span>
 			<button type="button" class="ap-mm-close" aria-label="Fermer le menu">&times;</button>
 		</div>
-		<div class="ap-mm-content">
-			<?php echo $menu_html; // deja echape par wp_nav_menu / wp_page_menu ?>
+		<div class="ap-mm-content" data-fallback="1">
+			<?php echo $menu_html; // fallback si le clone JS echoue ?>
 		</div>
 	</nav>
 	<script>
@@ -73,7 +73,42 @@ function annaphoto_mobile_menu_html() {
 		var drawer   = document.getElementById('ap-mm-drawer');
 		var backdrop = document.getElementById('ap-mm-backdrop');
 		var closeBtn = drawer ? drawer.querySelector('.ap-mm-close') : null;
-		if (!toggle || !drawer || !backdrop) return;
+		var content  = drawer ? drawer.querySelector('.ap-mm-content') : null;
+		if (!toggle || !drawer || !backdrop || !content) return;
+
+		// Clone le menu desktop de Bard (source de verite) dans le drawer
+		// pour garantir les MEMES items/liens que la version desktop.
+		function syncMenuFromDesktop() {
+			var selectors = [
+				'nav.top-menu-container ul#top-menu',
+				'nav.top-menu-container > ul',
+				'.top-menu-container ul#top-menu',
+				'.top-menu-container > ul',
+				'#top-menu',
+				'.top-menu ul',
+				'#site-navigation ul',
+				'nav[role="navigation"] ul'
+			];
+			var source = null;
+			for (var i = 0; i < selectors.length; i++) {
+				source = document.querySelector(selectors[i]);
+				if (source && source.children.length > 0) break;
+			}
+			if (!source) return false;
+			var clone = source.cloneNode(true);
+			// Retire les IDs pour eviter les doublons dans le DOM
+			clone.removeAttribute('id');
+			clone.querySelectorAll('[id]').forEach(function (el) { el.removeAttribute('id'); });
+			// Retire les classes qui pourraient interferer (ex: display:none Bard mobile)
+			clone.classList.remove('top-menu');
+			clone.classList.add('ap-mm-list');
+			// Vide le container et injecte le clone
+			content.innerHTML = '';
+			content.appendChild(clone);
+			content.setAttribute('data-fallback', '0');
+			return true;
+		}
+		syncMenuFromDesktop();
 
 		function open() {
 			toggle.classList.add('is-open');
