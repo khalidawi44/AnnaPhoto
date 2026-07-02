@@ -1,13 +1,8 @@
 <?php
 /**
- * Header transparent + hide-on-scroll + show-on-scroll-up
- *
- * - Attache un JS leger dans le footer qui detecte la direction du scroll
- *   et ajoute des classes CSS sur le header du site.
- * - Le CSS correspondant est dans style.css (section 6).
- *
- * Selecteurs cibles pour trouver le header : essaie plusieurs selecteurs
- * courants pour etre robuste vis-a-vis de Bard et de futurs changements.
+ * Sticky nav : transparent en haut, opaque au scroll, cache au scroll-down,
+ * reapparait au scroll-up. Meme logique que le template Alliance Groupe :
+ * classes .is-scrolled (opaque + blur) et .is-hidden (translateY -100%).
  */
 
 if ( ! defined( 'ABSPATH' ) ) { exit; }
@@ -17,8 +12,10 @@ function annaphoto_scroll_menu_script() {
 	?>
 	<script>
 	(function () {
-		// Recherche du header du site (premier match)
+		// Trouve le header du site (premier match dans la liste)
 		var selectors = [
+			'#site-nav',
+			'.site-nav',
 			'.site-header',
 			'#masthead',
 			'#site-header',
@@ -27,39 +24,28 @@ function annaphoto_scroll_menu_script() {
 			'.main-header',
 			'body > header'
 		];
-		var header = null;
+		var nav = null;
 		for (var i = 0; i < selectors.length; i++) {
-			header = document.querySelector(selectors[i]);
-			if (header) break;
+			nav = document.querySelector(selectors[i]);
+			if (nav) break;
 		}
-		if (!header) return;
-		header.classList.add('ap-scroll-header');
+		if (!nav) return;
+		nav.classList.add('site-nav');
 
-		var lastY = window.scrollY;
-		var showAfter = 80;   // scroll depuis le haut avant de considerer "scrolled"
-		var topZone   = 30;   // sous ce seuil = "en haut" (menu transparent)
+		var lastY = window.pageYOffset;
 		var ticking = false;
 
 		function update() {
-			var y = window.scrollY;
-			var goingDown = y > lastY;
-			var atTop = y < topZone;
-
-			header.classList.toggle('ap-at-top', atTop);
-
-			if (!atTop && y > showAfter) {
-				if (goingDown) {
-					header.classList.add('ap-hidden');
-					header.classList.remove('ap-visible');
-				} else {
-					header.classList.remove('ap-hidden');
-					header.classList.add('ap-visible');
-				}
+			var y = window.pageYOffset;
+			// ETAT 1 — Opaque + flou des qu'on quitte le tout en haut
+			nav.classList.toggle('is-scrolled', y > 60);
+			// ETAT 2 — Sens du scroll : on descend => cacher, on remonte => montrer
+			// On ne cache jamais tant qu'on est pres du haut (< 150px)
+			if (y > lastY && y > 150) {
+				nav.classList.add('is-hidden');
 			} else {
-				header.classList.remove('ap-hidden');
-				header.classList.add('ap-visible');
+				nav.classList.remove('is-hidden');
 			}
-
 			lastY = y;
 			ticking = false;
 		}
@@ -70,8 +56,6 @@ function annaphoto_scroll_menu_script() {
 				ticking = true;
 			}
 		}, { passive: true });
-
-		update();
 	})();
 	</script>
 	<?php
