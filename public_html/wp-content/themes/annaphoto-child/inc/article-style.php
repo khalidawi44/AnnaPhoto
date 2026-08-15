@@ -86,6 +86,96 @@ function ann_art_palettes() {
 	);
 }
 
+/**
+ * Presets complets : combinaisons pretes a l'emploi (layout + palette +
+ * fonts + options). Un clic dans l'UI applique TOUTES ces valeurs d'un
+ * coup et enregistre le style. Anna change de "look" en 1 clic.
+ */
+function ann_art_presets() {
+	return array(
+		'magazine_rose' => array(
+			'label' => 'Magazine Rose',
+			'tag'   => 'prestige · magazine',
+			'desc'  => 'Photo pleine largeur, titre italique elegant, texte en 2 colonnes avec lettrine.',
+			'settings' => array(
+				'layout' => 'editorial', 'palette' => 'rose', 'fontpair' => 'playfair_lora',
+				'title_align' => 'center', 'column_width' => 'medium',
+				'dropcap' => 1, 'sticky_image' => 0,
+			),
+		),
+		'journal_intime' => array(
+			'label' => 'Journal Intime',
+			'tag'   => 'confidence · douceur',
+			'desc'  => 'Colonne etroite centree, petite photo, beaucoup de blanc. Une lettre a une amie.',
+			'settings' => array(
+				'layout' => 'epure', 'palette' => 'rose', 'fontpair' => 'cormorant_inter',
+				'title_align' => 'center', 'column_width' => 'narrow',
+				'dropcap' => 0, 'sticky_image' => 0,
+			),
+		),
+		'portfolio_contemporain' => array(
+			'label' => 'Portfolio Contemporain',
+			'tag'   => 'moderne · design',
+			'desc'  => 'Photo a gauche edge-to-edge, texte a droite. Feel galerie d\'art moderne.',
+			'settings' => array(
+				'layout' => 'diptyque', 'palette' => 'aubergine', 'fontpair' => 'dmserif_dmsans',
+				'title_align' => 'left', 'column_width' => 'medium',
+				'dropcap' => 0, 'sticky_image' => 1,
+			),
+		),
+		'nature_sauvage' => array(
+			'label' => 'Nature Sauvage',
+			'tag'   => 'immersif · vivant',
+			'desc'  => 'Photo plein ecran, titre blanc en overlay, lead italique. Cinema, nature.',
+			'settings' => array(
+				'layout' => 'immersif', 'palette' => 'sauge', 'fontpair' => 'fraunces_karla',
+				'title_align' => 'center', 'column_width' => 'medium',
+				'dropcap' => 0, 'sticky_image' => 0,
+			),
+		),
+		'noir_blanc_pur' => array(
+			'label' => 'Noir & Blanc Pur',
+			'tag'   => 'minimal · photographique',
+			'desc'  => 'Minimalisme photographique absolu. Colonne etroite, blanc, serif classique.',
+			'settings' => array(
+				'layout' => 'epure', 'palette' => 'blanc', 'fontpair' => 'cormorant_inter',
+				'title_align' => 'center', 'column_width' => 'narrow',
+				'dropcap' => 1, 'sticky_image' => 0,
+			),
+		),
+		'editorial_moderne' => array(
+			'label' => 'Editorial Moderne',
+			'tag'   => 'contemporain · fort',
+			'desc'  => 'Titre puissant en DM Serif, couleurs aubergine, layout couverture avec lettrine.',
+			'settings' => array(
+				'layout' => 'editorial', 'palette' => 'aubergine', 'fontpair' => 'dmserif_dmsans',
+				'title_align' => 'left', 'column_width' => 'wide',
+				'dropcap' => 1, 'sticky_image' => 0,
+			),
+		),
+		'romantique' => array(
+			'label' => 'Romantique',
+			'tag'   => 'poetique · doux',
+			'desc'  => 'Immersif rose, typo Fraunces italique, texte aere. Feel poeme visuel.',
+			'settings' => array(
+				'layout' => 'immersif', 'palette' => 'rose', 'fontpair' => 'fraunces_karla',
+				'title_align' => 'center', 'column_width' => 'medium',
+				'dropcap' => 0, 'sticky_image' => 0,
+			),
+		),
+		'documentaire' => array(
+			'label' => 'Documentaire',
+			'tag'   => 'reportage · authentique',
+			'desc'  => 'Diptyque sauge, DM Sans lisible, image collante. Photojournalisme.',
+			'settings' => array(
+				'layout' => 'diptyque', 'palette' => 'sauge', 'fontpair' => 'dmserif_dmsans',
+				'title_align' => 'left', 'column_width' => 'medium',
+				'dropcap' => 0, 'sticky_image' => 1,
+			),
+		),
+	);
+}
+
 function ann_art_fontpairs() {
 	// Pairs curees. Chaque pair = 1 Google Font pour display + 1 pour body.
 	// Si la police body est system-ui, on n'enqueue que le display.
@@ -312,6 +402,58 @@ function ann_art_render() {
 	.ap-art-submit .button-primary { background:#8b6f6f; border-color:#8b6f6f; padding:8px 24px; height:auto; }
 	.ap-art-submit .button-primary:hover { background:#3d2e2e; border-color:#3d2e2e; }
 
+	/* Presets 1-clic */
+	.ap-art-presets-card { background: linear-gradient(135deg, #fdf5f2 0%, #f4e0dc 100%); border-color: #d4a5a5; }
+	.ap-art-badge {
+		display: inline-block; background: #8b6f6f; color: #fff;
+		font-size: 11px; padding: 3px 10px; border-radius: 12px;
+		margin-left: 8px; letter-spacing: 0.06em; font-weight: 600; text-transform: uppercase;
+	}
+	.ap-art-preset {
+		background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
+		padding: 16px; cursor: pointer; text-align: left;
+		display: flex; flex-direction: column; gap: 8px;
+		transition: all .2s cubic-bezier(.4,0,.2,1); position: relative;
+		font-family: inherit;
+	}
+	.ap-art-preset:hover {
+		border-color: #d4a5a5; transform: translateY(-4px);
+		box-shadow: 0 12px 24px rgba(139,111,111,.2);
+	}
+	.ap-art-preset:active { transform: translateY(-1px); }
+	.ap-art-preset.is-current {
+		border-color: #8b6f6f; background: #fdf5f2;
+		box-shadow: 0 0 0 3px rgba(139,111,111,.15);
+	}
+	.ap-art-preset.is-current::after {
+		content: "✓ Actif"; position: absolute; top: 8px; right: 8px;
+		background: #8b6f6f; color: #fff; font-size: 10px;
+		padding: 3px 8px; border-radius: 10px; letter-spacing: 0.06em; font-weight: 600;
+	}
+	.ap-art-preset-tag {
+		font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
+		color: #d4a5a5; font-weight: 600;
+	}
+	.ap-art-preset-label { font-family: Georgia, serif; font-style: italic; font-size: 20px; color: #3d2e2e; line-height: 1.15; margin: 0; }
+	.ap-art-preset-mini { height: 90px; border-radius: 6px; border: 1px solid rgba(139,111,111,.15); overflow: hidden; margin: 4px 0 6px; }
+	.ap-art-preset-desc { font-size: 12px; color: #64748b; line-height: 1.45; flex: 1; }
+	.ap-art-preset-cta {
+		font-size: 12px; color: #8b6f6f; font-weight: 600;
+		border-top: 1px dashed rgba(139,111,111,.2); padding-top: 8px;
+		display: flex; align-items: center; gap: 4px;
+		transition: gap .2s;
+	}
+	.ap-art-preset:hover .ap-art-preset-cta { gap: 8px; }
+
+	/* Preset mini-mockups adopte la palette */
+	.ap-art-preset-mini[data-palette="blanc"] > :first-child { background: linear-gradient(135deg,#ececec,#c9c9c9) !important; }
+	.ap-art-preset-mini[data-palette="blanc"] { background: #fff; }
+	.ap-art-preset-mini[data-palette="aubergine"] { background: #2a1e22 !important; }
+	.ap-art-preset-mini[data-palette="aubergine"] > * { background: #3a2a2c !important; }
+	.ap-art-preset-mini[data-palette="aubergine"] > :first-child { background: linear-gradient(135deg,#8b6f6f,#4a3739) !important; }
+	.ap-art-preset-mini[data-palette="sauge"] { background: #f5f2ec !important; }
+	.ap-art-preset-mini[data-palette="sauge"] > :first-child { background: linear-gradient(135deg,#c5a68d,#8e9976) !important; }
+
 	/* Preview link */
 	.ap-art-preview-link {
 		display:inline-flex; align-items:center; gap:6px;
@@ -330,9 +472,32 @@ function ann_art_render() {
 			<div class="notice notice-success is-dismissible"><p>✓ Style enregistre. Va voir un article pour tester.</p></div>
 		<?php endif; ?>
 
-		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="ap-art-form">
 			<input type="hidden" name="action" value="ann_art_save">
 			<?php wp_nonce_field( 'ann_art_save' ); ?>
+
+			<!-- ═══════════ PRESETS EN 1 CLIC ═══════════ -->
+			<div class="ap-art-card ap-art-presets-card">
+				<h2>⚡ Presentations pretes a l'emploi <span class="ap-art-badge">1 clic</span></h2>
+				<p>Clique sur un style ci-dessous : <strong>tout change d'un coup et c'est enregistre</strong> (layout, couleurs, typo, options). Tu peux affiner ensuite dans les sections en dessous.</p>
+				<div class="ap-art-grid ap-art-grid-4">
+					<?php foreach ( ann_art_presets() as $key => $p ) :
+						$sett = $p['settings']; ?>
+						<button type="button"
+							class="ap-art-preset"
+							data-preset='<?php echo esc_attr( wp_json_encode( $sett ) ); ?>'>
+							<span class="ap-art-preset-tag"><?php echo esc_html( $p['tag'] ); ?></span>
+							<span class="ap-art-preset-label"><?php echo esc_html( $p['label'] ); ?></span>
+							<div class="ap-art-preset-mini mp mp-<?php echo esc_attr( $sett['layout'] ); ?>"
+								data-palette="<?php echo esc_attr( $sett['palette'] ); ?>">
+								<div></div><div></div><div></div>
+							</div>
+							<span class="ap-art-preset-desc"><?php echo esc_html( $p['desc'] ); ?></span>
+							<span class="ap-art-preset-cta">Appliquer et enregistrer →</span>
+						</button>
+					<?php endforeach; ?>
+				</div>
+			</div>
 
 			<!-- ═══════════ LAYOUT ═══════════ -->
 			<div class="ap-art-card">
@@ -472,15 +637,90 @@ function ann_art_render() {
 	</div>
 
 	<script>
-	// Toggle affichage des couleurs custom quand on choisit "Personnalise"
+	// 1) Toggle affichage des couleurs custom
 	document.addEventListener('change', function (e) {
 		if (e.target.name === 'palette') {
 			var custom = document.getElementById('ap-art-custom');
-			if (custom) {
-				custom.classList.toggle('is-visible', e.target.value === 'custom');
-			}
+			if (custom) custom.classList.toggle('is-visible', e.target.value === 'custom');
 		}
 	});
+
+	// 2) Presets : click = applique TOUT + submit form (1 clic = enregistre)
+	(function () {
+		var form = document.getElementById('ap-art-form');
+		if (!form) return;
+		var presets = document.querySelectorAll('.ap-art-preset');
+
+		// Compare l'etat actuel du formulaire a un preset donne (pour badge "Actif")
+		function currentSettings() {
+			var fd = new FormData(form);
+			return {
+				layout:       fd.get('layout'),
+				palette:      fd.get('palette'),
+				fontpair:     fd.get('fontpair'),
+				title_align:  fd.get('title_align'),
+				column_width: fd.get('column_width'),
+				dropcap:      fd.get('dropcap') ? 1 : 0,
+				sticky_image: fd.get('sticky_image') ? 1 : 0,
+			};
+		}
+		function matches(a, b) {
+			var keys = ['layout','palette','fontpair','title_align','column_width','dropcap','sticky_image'];
+			for (var i = 0; i < keys.length; i++) {
+				if (String(a[keys[i]]) !== String(b[keys[i]])) return false;
+			}
+			return true;
+		}
+		function refreshActiveBadges() {
+			var cur = currentSettings();
+			presets.forEach(function (p) {
+				var data = {};
+				try { data = JSON.parse(p.getAttribute('data-preset')); } catch (e) {}
+				p.classList.toggle('is-current', matches(cur, {
+					layout: data.layout, palette: data.palette, fontpair: data.fontpair,
+					title_align: data.title_align, column_width: data.column_width,
+					dropcap: data.dropcap ? 1 : 0, sticky_image: data.sticky_image ? 1 : 0,
+				}));
+			});
+		}
+		refreshActiveBadges();
+
+		presets.forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var data;
+				try { data = JSON.parse(btn.getAttribute('data-preset')); }
+				catch (e) { return; }
+
+				// Applique chaque valeur au formulaire
+				Object.keys(data).forEach(function (name) {
+					var value = data[name];
+					// Radios
+					var radios = form.querySelectorAll('input[type=radio][name="' + name + '"]');
+					if (radios.length) {
+						radios.forEach(function (r) { r.checked = (r.value === String(value)); });
+						return;
+					}
+					// Checkboxes (dropcap, sticky_image)
+					var check = form.querySelector('input[type=checkbox][name="' + name + '"]');
+					if (check) { check.checked = !!value; return; }
+					// Text/hidden
+					var field = form.querySelector('[name="' + name + '"]');
+					if (field) field.value = value;
+				});
+
+				// Feedback visuel avant submit
+				btn.classList.add('is-current');
+				btn.querySelector('.ap-art-preset-cta').innerHTML = '⏳ Enregistrement...';
+
+				// Ferme le custom-colors si palette != custom
+				var custom = document.getElementById('ap-art-custom');
+				if (custom) custom.classList.toggle('is-visible', data.palette === 'custom');
+
+				// Submit le form -> save + reload
+				setTimeout(function () { form.submit(); }, 150);
+			});
+		});
+	})();
 	</script>
 	<?php
 }
