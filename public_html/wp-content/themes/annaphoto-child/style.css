@@ -617,15 +617,37 @@ body.single-post article.post p {
     hyphens: auto;
     word-spacing: normal !important;
 }
-/* Titre et meta centres aussi pour la coherence */
+/* En-tete : centre + pleine largeur du cadre avec juste une petite marge
+   (le titre respire sur toute la largeur, contrairement au corps qui
+   garde une largeur de lecture confortable) */
 body.single-post .entry-header,
-body.single-post .post-header,
+body.single-post .post-header {
+    text-align: center !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: clamp(12px, 2vw, 24px) !important;
+    padding-right: clamp(12px, 2vw, 24px) !important;
+    box-sizing: border-box;
+}
 body.single-post .entry-title,
 body.single-post .post-title,
-body.single-post .entry-meta,
-body.single-post .post-meta {
+body.single-post .entry-header h1,
+body.single-post .post-header h1 {
     text-align: center !important;
-    max-width: clamp(320px, 88vw, 720px);
+    max-width: 100% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    font-size: clamp(28px, 4.2vw, 56px) !important;
+    line-height: 1.15 !important;
+    text-wrap: balance;
+    padding: 0 !important;
+}
+body.single-post .entry-meta,
+body.single-post .post-meta,
+body.single-post .post-header .post-meta {
+    text-align: center !important;
+    max-width: 100% !important;
     margin-left: auto !important;
     margin-right: auto !important;
 }
