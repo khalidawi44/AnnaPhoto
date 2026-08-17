@@ -769,6 +769,9 @@ function ann_art_inline_css() {
 	$palettes = ann_art_palettes();
 	$fonts    = ann_art_fontpairs();
 
+	// Marqueur de debug pour verifier que le CSS s'applique
+	echo "\n<!-- Anna Photo Style : layout={$s['layout']} palette={$s['palette']} font={$s['fontpair']} -->\n";
+
 	// Palette : preset ou custom
 	if ( 'custom' === $s['palette'] ) {
 		$bg     = $s['custom_bg']     ?: '#fdf5f2';
@@ -793,7 +796,7 @@ function ann_art_inline_css() {
 
 	?>
 	<style id="ann-art-css">
-	.single-post {
+	html, body.single-post, body.single.single-post {
 		--ap-art-bg: <?php echo esc_html( $bg ); ?>;
 		--ap-art-text: <?php echo esc_html( $text ); ?>;
 		--ap-art-meta: <?php echo esc_html( $meta ); ?>;
@@ -802,6 +805,17 @@ function ann_art_inline_css() {
 		--ap-art-line: <?php echo esc_html( $line ); ?>;
 		--ap-art-display: <?php echo $fdisp; // deja quote ?>;
 		--ap-art-body: <?php echo $fbody; ?>;
+	}
+	/* Force background sur tous les conteneurs Bard pour que la couleur choisie soit visible */
+	body.single-post,
+	body.single-post #page,
+	body.single-post .site,
+	body.single-post .site-content,
+	body.single-post .content-area,
+	body.single-post main,
+	body.single-post .main,
+	body.single-post .post-main {
+		background-color: <?php echo esc_html( $bg ); ?> !important;
 	}
 	</style>
 	<?php

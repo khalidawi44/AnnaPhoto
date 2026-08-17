@@ -544,40 +544,109 @@ button:has(> .fa-retweet) {
  * 9. Layouts d'articles (piloté par l'éditeur admin "Style articles")
  *    4 layouts : editorial, epure, diptyque, immersif
  *    Couleurs et polices via variables CSS injectees par ann_art_inline_css
+ *
+ *    On cible a la fois les classes generiques WordPress (.entry-*)
+ *    ET les classes du theme parent Bard (.post-*), avec !important
+ *    sur les proprietes cles pour ecraser le theme parent.
  * ----------------------------------------------------------------------- */
-body.single-post {
-    background: var(--ap-art-bg, #fdf5f2);
+
+/* Fond global de l'article */
+body.single-post,
+body.single.single-post {
+    background: var(--ap-art-bg, #fdf5f2) !important;
     color: var(--ap-art-text, #3d2e2e);
     font-family: var(--ap-art-body, inherit);
 }
+body.single-post #page,
+body.single-post .site,
+body.single-post .site-content,
+body.single-post .content-area,
+body.single-post main,
+body.single-post #main,
+body.single-post #primary,
+body.single-post .post-main,
+body.single-post .post-inner,
+body.single-post article.post {
+    background: transparent !important;
+}
+
+/* Titre de l'article - classes generiques + Bard */
 body.single-post .entry-title,
 body.single-post .entry-header h1,
-body.single-post h1.post-title {
+body.single-post .post-title,
+body.single-post .post-title a,
+body.single-post h1.post-title,
+body.single-post .post-header h1,
+body.single-post article.post h1 {
     font-family: var(--ap-art-display, Georgia, serif) !important;
-    font-style: italic;
-    color: var(--ap-art-text) !important;
-    letter-spacing: -0.005em;
-    text-wrap: balance;
-    line-height: 1.1;
-    font-weight: 400;
+    font-style: italic !important;
+    color: var(--ap-art-text, #3d2e2e) !important;
+    letter-spacing: -0.005em !important;
+    line-height: 1.1 !important;
+    font-weight: 400 !important;
 }
+
+/* Corps de l'article - classes generiques + Bard */
 body.single-post .entry-content,
-body.single-post .post-content {
-    font-family: var(--ap-art-body, inherit);
-    color: var(--ap-art-text);
+body.single-post .post-content,
+body.single-post .post-main,
+body.single-post article.post .post-inner,
+body.single-post article.post .post-body {
+    font-family: var(--ap-art-body, inherit) !important;
+    color: var(--ap-art-text, #3d2e2e) !important;
     line-height: 1.75;
     font-size: 17px;
 }
-body.single-post .entry-content p { margin: 0 0 1.2em; }
-body.single-post .entry-content a { color: var(--ap-art-accent-strong); text-decoration: underline; text-decoration-color: var(--ap-art-accent); text-underline-offset: 3px; }
-body.single-post .entry-content a:hover { color: var(--ap-art-accent); }
-body.single-post .entry-content h2 { font-family: var(--ap-art-display); font-style: italic; font-weight: 400; color: var(--ap-art-accent-strong); font-size: 1.9em; margin: 1.8em 0 .6em; }
-body.single-post .entry-content h3 { font-family: var(--ap-art-display); font-style: italic; font-weight: 400; color: var(--ap-art-accent-strong); font-size: 1.4em; margin: 1.5em 0 .4em; }
+body.single-post .entry-content p,
+body.single-post .post-content p,
+body.single-post article.post p {
+    margin: 0 0 1.2em;
+    color: var(--ap-art-text, #3d2e2e) !important;
+    font-family: var(--ap-art-body, inherit) !important;
+}
+body.single-post .entry-content a,
+body.single-post .post-content a,
+body.single-post article.post p a {
+    color: var(--ap-art-accent-strong) !important;
+    text-decoration: underline;
+    text-decoration-color: var(--ap-art-accent);
+    text-underline-offset: 3px;
+}
+body.single-post .entry-content a:hover,
+body.single-post .post-content a:hover { color: var(--ap-art-accent) !important; }
+
+body.single-post .entry-content h2,
+body.single-post .post-content h2,
+body.single-post article.post h2 {
+    font-family: var(--ap-art-display) !important;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ap-art-accent-strong) !important;
+    font-size: 1.9em;
+    margin: 1.8em 0 .6em;
+}
+body.single-post .entry-content h3,
+body.single-post .post-content h3,
+body.single-post article.post h3 {
+    font-family: var(--ap-art-display) !important;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ap-art-accent-strong) !important;
+    font-size: 1.4em;
+    margin: 1.5em 0 .4em;
+}
+
+/* Meta (date, auteur, categories) */
 body.single-post .entry-meta,
+body.single-post .entry-meta a,
 body.single-post .post-meta,
-body.single-post time {
-    color: var(--ap-art-meta) !important;
-    font-family: var(--ap-art-body);
+body.single-post .post-meta a,
+body.single-post .post-header .post-meta,
+body.single-post time,
+body.single-post .posted-on,
+body.single-post .byline {
+    color: var(--ap-art-meta, #a89592) !important;
+    font-family: var(--ap-art-body) !important;
     font-size: 12.5px;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -585,61 +654,96 @@ body.single-post time {
 
 /* Alignement du titre */
 body.ap-align-center .entry-title,
-body.ap-align-center .entry-header { text-align: center; }
+body.ap-align-center .entry-header,
+body.ap-align-center .post-header,
+body.ap-align-center .post-title { text-align: center !important; }
 body.ap-align-left .entry-title,
-body.ap-align-left .entry-header { text-align: left; }
+body.ap-align-left .entry-header,
+body.ap-align-left .post-header,
+body.ap-align-left .post-title { text-align: left !important; }
 
 /* Largeur de colonne */
-body.ap-col-narrow .entry-content { max-width: 560px !important; margin-left: auto !important; margin-right: auto !important; }
-body.ap-col-medium .entry-content { max-width: 720px !important; margin-left: auto !important; margin-right: auto !important; }
-body.ap-col-wide .entry-content { max-width: 900px !important; margin-left: auto !important; margin-right: auto !important; }
+body.ap-col-narrow .entry-content,
+body.ap-col-narrow .post-content,
+body.ap-col-narrow article.post .post-inner {
+    max-width: 560px !important; margin-left: auto !important; margin-right: auto !important;
+}
+body.ap-col-medium .entry-content,
+body.ap-col-medium .post-content,
+body.ap-col-medium article.post .post-inner {
+    max-width: 720px !important; margin-left: auto !important; margin-right: auto !important;
+}
+body.ap-col-wide .entry-content,
+body.ap-col-wide .post-content,
+body.ap-col-wide article.post .post-inner {
+    max-width: 900px !important; margin-left: auto !important; margin-right: auto !important;
+}
 
 /* Lettrine */
-body.ap-dropcap .entry-content > p:first-of-type::first-letter {
-    font-family: var(--ap-art-display);
+body.ap-dropcap .entry-content > p:first-of-type::first-letter,
+body.ap-dropcap .post-content > p:first-of-type::first-letter,
+body.ap-dropcap article.post p:first-of-type::first-letter {
+    font-family: var(--ap-art-display) !important;
     font-style: italic;
     font-size: 4.2em;
     float: left;
     line-height: 0.9;
     padding: 6px 12px 0 0;
-    color: var(--ap-art-accent-strong);
+    color: var(--ap-art-accent-strong) !important;
     font-weight: 400;
 }
 
 /* ═══ Layout 1 : EDITORIAL COUVERTURE ═══ */
 body.ap-layout-editorial .post-thumbnail,
-body.ap-layout-editorial .entry-thumbnail {
+body.ap-layout-editorial .entry-thumbnail,
+body.ap-layout-editorial .post-featured-media,
+body.ap-layout-editorial .post-header-image,
+body.ap-layout-editorial .featured-media {
     max-width: 100% !important;
     margin: 0 0 32px !important;
     padding: 0 !important;
 }
 body.ap-layout-editorial .post-thumbnail img,
-body.ap-layout-editorial .entry-thumbnail img { width: 100%; height: auto; display: block; }
-body.ap-layout-editorial .entry-header h1 { font-size: clamp(32px, 4vw, 52px); margin: 0 0 12px; }
-body.ap-layout-editorial .entry-header { padding: 0 24px; margin-bottom: 28px; }
+body.ap-layout-editorial .entry-thumbnail img,
+body.ap-layout-editorial .post-featured-media img,
+body.ap-layout-editorial .featured-media img { width: 100% !important; height: auto !important; display: block; }
+body.ap-layout-editorial .entry-header h1,
+body.ap-layout-editorial .post-title { font-size: clamp(32px, 4vw, 52px) !important; margin: 0 0 12px; }
+body.ap-layout-editorial .entry-header,
+body.ap-layout-editorial .post-header { padding: 0 24px; margin-bottom: 28px; }
 
 /* ═══ Layout 2 : EPURE CENTRALE ═══ */
-body.ap-layout-epure .entry-content { max-width: 560px !important; margin: 0 auto !important; padding: 0 20px !important; }
-body.ap-layout-epure .entry-header { text-align: center; padding: 60px 20px 20px; }
-body.ap-layout-epure .entry-header h1 { font-size: clamp(28px, 3.4vw, 40px); max-width: 22ch; margin: 0 auto 20px; }
-body.ap-layout-epure .entry-header::after {
+body.ap-layout-epure .entry-content,
+body.ap-layout-epure .post-content { max-width: 560px !important; margin: 0 auto !important; padding: 0 20px !important; }
+body.ap-layout-epure .entry-header,
+body.ap-layout-epure .post-header { text-align: center !important; padding: 60px 20px 20px; }
+body.ap-layout-epure .entry-header h1,
+body.ap-layout-epure .post-title { font-size: clamp(28px, 3.4vw, 40px) !important; max-width: 22ch; margin: 0 auto 20px !important; }
+body.ap-layout-epure .entry-header::after,
+body.ap-layout-epure .post-header::after {
     content: ""; display: block; width: 32px; height: 1px;
     background: var(--ap-art-accent); margin: 24px auto;
 }
 body.ap-layout-epure .post-thumbnail,
-body.ap-layout-epure .entry-thumbnail {
+body.ap-layout-epure .entry-thumbnail,
+body.ap-layout-epure .post-featured-media,
+body.ap-layout-epure .featured-media {
     max-width: 380px !important;
     margin: 0 auto 40px !important;
 }
 body.ap-layout-epure .post-thumbnail img,
-body.ap-layout-epure .entry-thumbnail img { width: 100%; height: auto; border-radius: 4px; }
-body.ap-layout-epure .entry-content { font-size: 17px; line-height: 1.85; }
+body.ap-layout-epure .entry-thumbnail img,
+body.ap-layout-epure .post-featured-media img,
+body.ap-layout-epure .featured-media img { width: 100% !important; height: auto !important; border-radius: 4px; }
+body.ap-layout-epure .entry-content,
+body.ap-layout-epure .post-content { font-size: 17px !important; line-height: 1.85 !important; }
 
 /* ═══ Layout 3 : DIPTYQUE ASYMÉTRIQUE ═══ */
 @media (min-width: 901px) {
     body.ap-layout-diptyque article.post,
     body.ap-layout-diptyque .single-post-content,
-    body.ap-layout-diptyque .post-inner {
+    body.ap-layout-diptyque .post-inner,
+    body.ap-layout-diptyque .post-main {
         display: grid !important;
         grid-template-columns: 44% 56% !important;
         gap: 0 !important;
@@ -647,32 +751,43 @@ body.ap-layout-epure .entry-content { font-size: 17px; line-height: 1.85; }
         padding: 0 !important;
     }
     body.ap-layout-diptyque .post-thumbnail,
-    body.ap-layout-diptyque .entry-thumbnail {
+    body.ap-layout-diptyque .entry-thumbnail,
+    body.ap-layout-diptyque .post-featured-media,
+    body.ap-layout-diptyque .featured-media {
         grid-column: 1;
         margin: 0 !important;
         max-width: 100% !important;
         height: 100vh;
     }
     body.ap-layout-diptyque .post-thumbnail img,
-    body.ap-layout-diptyque .entry-thumbnail img {
-        width: 100%; height: 100%; object-fit: cover;
+    body.ap-layout-diptyque .entry-thumbnail img,
+    body.ap-layout-diptyque .post-featured-media img,
+    body.ap-layout-diptyque .featured-media img {
+        width: 100% !important; height: 100% !important; object-fit: cover;
     }
     body.ap-sticky-img.ap-layout-diptyque .post-thumbnail,
-    body.ap-sticky-img.ap-layout-diptyque .entry-thumbnail {
+    body.ap-sticky-img.ap-layout-diptyque .entry-thumbnail,
+    body.ap-sticky-img.ap-layout-diptyque .featured-media {
         position: sticky; top: 0;
     }
     body.ap-layout-diptyque .entry-header,
-    body.ap-layout-diptyque .entry-content {
+    body.ap-layout-diptyque .entry-content,
+    body.ap-layout-diptyque .post-header,
+    body.ap-layout-diptyque .post-content {
         grid-column: 2;
-        padding: 48px 56px;
+        padding: 48px 56px !important;
     }
-    body.ap-layout-diptyque .entry-header { padding-bottom: 12px; text-align: left; }
-    body.ap-layout-diptyque .entry-content { padding-top: 0; max-width: 640px !important; }
+    body.ap-layout-diptyque .entry-header,
+    body.ap-layout-diptyque .post-header { padding-bottom: 12px !important; text-align: left !important; }
+    body.ap-layout-diptyque .entry-content,
+    body.ap-layout-diptyque .post-content { padding-top: 0 !important; max-width: 640px !important; }
 }
 
 /* ═══ Layout 4 : IMMERSIF ═══ */
 body.ap-layout-immersif .post-thumbnail,
-body.ap-layout-immersif .entry-thumbnail {
+body.ap-layout-immersif .entry-thumbnail,
+body.ap-layout-immersif .post-featured-media,
+body.ap-layout-immersif .featured-media {
     position: relative;
     max-width: 100% !important;
     margin: 0 !important;
@@ -681,61 +796,74 @@ body.ap-layout-immersif .entry-thumbnail {
     overflow: hidden;
 }
 body.ap-layout-immersif .post-thumbnail img,
-body.ap-layout-immersif .entry-thumbnail img {
-    width: 100%; height: 100%; object-fit: cover; display: block;
+body.ap-layout-immersif .entry-thumbnail img,
+body.ap-layout-immersif .post-featured-media img,
+body.ap-layout-immersif .featured-media img {
+    width: 100% !important; height: 100% !important; object-fit: cover; display: block;
 }
 body.ap-layout-immersif .post-thumbnail::after,
-body.ap-layout-immersif .entry-thumbnail::after {
+body.ap-layout-immersif .entry-thumbnail::after,
+body.ap-layout-immersif .post-featured-media::after,
+body.ap-layout-immersif .featured-media::after {
     content: ""; position: absolute; inset: 0;
     background: linear-gradient(180deg, transparent 40%, rgba(20, 12, 12, 0.55) 100%);
     pointer-events: none;
 }
-body.ap-layout-immersif .entry-header {
+body.ap-layout-immersif .entry-header,
+body.ap-layout-immersif .post-header {
     position: relative;
-    margin-top: -180px;
-    padding: 0 32px 40px;
+    margin-top: -180px !important;
+    padding: 0 32px 40px !important;
     z-index: 2;
-    color: #fff;
-    text-align: center;
-}
-body.ap-layout-immersif .entry-header h1 {
     color: #fff !important;
-    font-size: clamp(34px, 5vw, 64px);
+    text-align: center !important;
+}
+body.ap-layout-immersif .entry-header h1,
+body.ap-layout-immersif .post-title {
+    color: #fff !important;
+    font-size: clamp(34px, 5vw, 64px) !important;
     text-shadow: 0 2px 20px rgba(0, 0, 0, 0.4);
     max-width: 22ch;
-    margin: 0 auto;
+    margin: 0 auto !important;
 }
 body.ap-layout-immersif .entry-meta,
 body.ap-layout-immersif .post-meta,
 body.ap-layout-immersif time { color: rgba(255, 255, 255, 0.85) !important; }
-body.ap-layout-immersif .entry-content {
-    padding: 60px 20px;
+body.ap-layout-immersif .entry-content,
+body.ap-layout-immersif .post-content {
+    padding: 60px 20px !important;
     max-width: 640px !important;
     margin: 0 auto !important;
-    font-size: 18px;
-    line-height: 1.8;
+    font-size: 18px !important;
+    line-height: 1.8 !important;
 }
-body.ap-layout-immersif .entry-content > p:first-of-type {
-    font-family: var(--ap-art-display);
+body.ap-layout-immersif .entry-content > p:first-of-type,
+body.ap-layout-immersif .post-content > p:first-of-type {
+    font-family: var(--ap-art-display) !important;
     font-style: italic;
-    font-size: 1.4em;
-    line-height: 1.5;
-    color: var(--ap-art-accent-strong);
+    font-size: 1.4em !important;
+    line-height: 1.5 !important;
+    color: var(--ap-art-accent-strong) !important;
     margin-bottom: 1.5em;
 }
 
 /* Responsive : sur mobile, tous les layouts passent en stack */
 @media (max-width: 900px) {
     body.single-post .entry-header,
-    body.single-post .entry-content {
+    body.single-post .entry-content,
+    body.single-post .post-header,
+    body.single-post .post-content {
         max-width: 100% !important;
         padding-left: 20px !important;
         padding-right: 20px !important;
     }
-    body.single-post .entry-header h1 { font-size: clamp(28px, 6vw, 40px) !important; }
-    body.ap-layout-immersif .entry-header { margin-top: -80px; }
+    body.single-post .entry-header h1,
+    body.single-post .post-title { font-size: clamp(28px, 6vw, 40px) !important; }
+    body.ap-layout-immersif .entry-header,
+    body.ap-layout-immersif .post-header { margin-top: -80px !important; }
     body.ap-layout-immersif .post-thumbnail,
-    body.ap-layout-immersif .entry-thumbnail { height: 60vh; min-height: 320px; }
+    body.ap-layout-immersif .entry-thumbnail,
+    body.ap-layout-immersif .featured-media { height: 60vh !important; min-height: 320px; }
 }
 
 /* -----------------------------------------------------------------------
