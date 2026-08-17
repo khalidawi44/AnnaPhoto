@@ -118,6 +118,22 @@ function annaphoto_tools_dashboard_render() {
 
 	// Compteurs prospection pour bandeau du haut
 	$counts = function_exists( 'ann_counters' ) ? ann_counters() : array();
+
+	// Articles pour la section "Mes articles"
+	$drafts = get_posts( array(
+		'post_type'      => 'post',
+		'post_status'    => 'draft',
+		'numberposts'    => 3,
+		'orderby'        => 'modified',
+		'order'          => 'DESC',
+	) );
+	$recent = get_posts( array(
+		'post_type'      => 'post',
+		'post_status'    => 'publish',
+		'numberposts'    => 5,
+		'orderby'        => 'date',
+		'order'          => 'DESC',
+	) );
 	?>
 	<style>
 	#annaphoto_tools_hub .inside { margin: 0; padding: 0; }
@@ -146,6 +162,80 @@ function annaphoto_tools_dashboard_render() {
 	.ap-hub-stat:hover { background: rgba(255,255,255,.32); color: #fff !important; }
 	.ap-hub-stat b { font-size: 14px; }
 	.ap-hub-stat.urgent { background: #ef4444; }
+
+	/* Section "Mes articles" */
+	.ap-hub-articles {
+		background: #fff;
+		padding: 18px 20px 20px;
+		border-bottom: 1px solid #e2e8f0;
+	}
+	.ap-hub-articles h3 {
+		margin: 0 0 12px;
+		font-size: 13px;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: #64748b;
+		font-weight: 600;
+	}
+	.ap-hub-articles h3 .count {
+		background: #d4a5a5; color: #fff;
+		font-size: 10px; padding: 2px 8px;
+		border-radius: 10px; margin-left: 6px;
+		text-transform: none; letter-spacing: 0;
+	}
+	.ap-hub-new-post {
+		display: flex; align-items: center; justify-content: space-between;
+		background: linear-gradient(135deg, #d4a5a5 0%, #8b6f6f 100%);
+		color: #fff !important; text-decoration: none;
+		padding: 16px 20px; border-radius: 10px;
+		font-weight: 600; font-size: 16px;
+		transition: all .2s;
+		margin-bottom: 14px;
+	}
+	.ap-hub-new-post:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 8px 18px rgba(212,165,165,.35);
+		color: #fff !important;
+	}
+	.ap-hub-new-post .arrow { font-size: 22px; transition: transform .2s; }
+	.ap-hub-new-post:hover .arrow { transform: translateX(4px); }
+
+	.ap-hub-article-list {
+		display: flex; flex-direction: column; gap: 4px;
+		margin: 0 0 10px;
+	}
+	.ap-hub-article-list h4 {
+		margin: 8px 0 4px; font-size: 11px; color: #a89592;
+		text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600;
+	}
+	.ap-hub-article {
+		display: flex; align-items: center; justify-content: space-between;
+		gap: 10px;
+		background: #f8fafc; border: 1px solid #e2e8f0;
+		border-radius: 8px; padding: 10px 12px;
+		text-decoration: none; color: #0f172a;
+		transition: all .15s;
+	}
+	.ap-hub-article:hover {
+		background: #fdf5f2; border-color: #d4a5a5;
+		color: #0f172a; transform: translateX(2px);
+	}
+	.ap-hub-article-title {
+		flex: 1; font-size: 13px; font-weight: 500;
+		overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+	}
+	.ap-hub-article-date {
+		font-size: 11px; color: #a89592; white-space: nowrap;
+	}
+	.ap-hub-article.is-draft .ap-hub-article-title::before {
+		content: "✎ "; color: #f59e0b; font-weight: 700;
+	}
+	.ap-hub-articles-all {
+		display: inline-block;
+		font-size: 12px; color: #8b6f6f;
+		text-decoration: none; margin-top: 6px;
+	}
+	.ap-hub-articles-all:hover { text-decoration: underline; }
 
 	.ap-hub-grid {
 		display: grid;
@@ -211,6 +301,41 @@ function annaphoto_tools_dashboard_render() {
 				<a class="ap-hub-stat" href="<?php echo esc_url( admin_url( 'admin.php?page=ann-prospects&f_status=client' ) ); ?>">💖 <b><?php echo (int) ( $counts['client'] ?? 0 ); ?></b> clients</a>
 			</div>
 		<?php endif; ?>
+	</div>
+
+	<div class="ap-hub-articles">
+		<h3>✍️ Mes articles</h3>
+
+		<a href="<?php echo esc_url( admin_url( 'post-new.php' ) ); ?>" class="ap-hub-new-post">
+			<span>➕ Ecrire un nouvel article</span>
+			<span class="arrow">→</span>
+		</a>
+
+		<?php if ( ! empty( $drafts ) ) : ?>
+			<div class="ap-hub-article-list">
+				<h4>Brouillons a continuer</h4>
+				<?php foreach ( $drafts as $d ) : ?>
+					<a href="<?php echo esc_url( get_edit_post_link( $d->ID ) ); ?>" class="ap-hub-article is-draft">
+						<span class="ap-hub-article-title"><?php echo esc_html( $d->post_title ?: '(sans titre)' ); ?></span>
+						<span class="ap-hub-article-date"><?php echo esc_html( get_the_modified_date( 'd/m', $d ) ); ?></span>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
+
+		<?php if ( ! empty( $recent ) ) : ?>
+			<div class="ap-hub-article-list">
+				<h4>Articles recents (clic = modifier)</h4>
+				<?php foreach ( $recent as $r ) : ?>
+					<a href="<?php echo esc_url( get_edit_post_link( $r->ID ) ); ?>" class="ap-hub-article">
+						<span class="ap-hub-article-title"><?php echo esc_html( $r->post_title ); ?></span>
+						<span class="ap-hub-article-date"><?php echo esc_html( get_the_date( 'd/m/Y', $r ) ); ?></span>
+					</a>
+				<?php endforeach; ?>
+			</div>
+		<?php endif; ?>
+
+		<a href="<?php echo esc_url( admin_url( 'edit.php' ) ); ?>" class="ap-hub-articles-all">Voir tous les articles →</a>
 	</div>
 
 	<div class="ap-hub-grid">
