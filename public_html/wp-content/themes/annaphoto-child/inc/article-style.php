@@ -290,440 +290,445 @@ function ann_art_save() {
  * ========================================================================= */
 function ann_art_render() {
 	if ( ! current_user_can( 'edit_theme_options' ) ) { return; }
-	$s = ann_art_get();
+	$s        = ann_art_get();
 	$layouts  = ann_art_layouts();
 	$palettes = ann_art_palettes();
 	$fonts    = ann_art_fontpairs();
+	$presets  = ann_art_presets();
 	$saved    = ! empty( $_GET['saved'] );
+
+	// Detecte quel preset (s'il y en a un) correspond aux settings actuels
+	$active_preset = '';
+	foreach ( $presets as $k => $p ) {
+		$match = true;
+		foreach ( $p['settings'] as $key => $val ) {
+			if ( (string) $s[ $key ] !== (string) $val ) { $match = false; break; }
+		}
+		if ( $match ) { $active_preset = $k; break; }
+	}
 	?>
 	<style>
-	.ap-art-wrap { max-width: 1180px; }
-	.ap-art-wrap h1 { display:flex; align-items:center; gap:10px; font-size:24px; margin:12px 0 4px; }
-	.ap-art-wrap .ap-art-lead { color:#64748b; margin:0 0 24px; font-size:14px; }
-	.ap-art-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:22px 24px; margin:16px 0; }
-	.ap-art-card > h2 { margin:0 0 6px; font-size:17px; display:flex; align-items:center; gap:8px; }
-	.ap-art-card > p { color:#64748b; margin:0 0 18px; font-size:13px; }
-	.ap-art-grid { display:grid; gap:14px; }
-	.ap-art-grid-2 { grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); }
-	.ap-art-grid-4 { grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); }
-	.ap-art-pick {
-		display:block; cursor:pointer; background:#fff; border:2px solid #e2e8f0;
-		border-radius:12px; padding:16px; transition:all .18s ease; position:relative;
+	.ap-art-wrap { max-width: 1280px; padding-top: 20px; }
+	.ap-art-hero {
+		background: linear-gradient(135deg, #fdf5f2 0%, #f4e0dc 100%);
+		border: 1px solid #d4a5a5; border-radius: 16px;
+		padding: 32px 36px; margin: 16px 0 32px;
 	}
-	.ap-art-pick:hover { border-color:#c9b6b6; transform:translateY(-2px); box-shadow:0 6px 16px rgba(139,111,111,.12); }
-	.ap-art-pick input[type=radio] { position:absolute; opacity:0; pointer-events:none; }
-	.ap-art-pick.is-checked, .ap-art-pick input:checked ~ * { }
-	.ap-art-pick:has(input:checked) { border-color:#d4a5a5; background:#fdf5f2; box-shadow:0 0 0 3px rgba(212,165,165,.2); }
-	.ap-art-pick-title { font-weight:600; font-size:15px; margin:0 0 4px; display:flex; align-items:center; gap:6px; }
-	.ap-art-pick-desc { font-size:12.5px; color:#64748b; line-height:1.5; margin:0; }
-	.ap-art-preview { margin-top:12px; height:100px; border-radius:8px; border:1px solid #e2e8f0; overflow:hidden; }
-
-	/* Mini mockups pour le layout picker */
-	.mp { width:100%; height:100%; display:flex; }
-	.mp-editorial { flex-direction:column; }
-	.mp-editorial > :nth-child(1) { flex:1.2; background:linear-gradient(135deg,#f4e0dc,#d4a5a5); }
-	.mp-editorial > :nth-child(2) { flex:0.5; background:#fdf5f2; display:flex; align-items:center; justify-content:center; }
-	.mp-editorial > :nth-child(2)::before { content:""; width:60%; height:8px; background:#8b6f6f; border-radius:1px; }
-	.mp-editorial > :nth-child(3) { flex:1; background:#fdf5f2; padding:4px 8px; }
-	.mp-editorial > :nth-child(3)::before { content:""; display:block; height:60%; background:repeating-linear-gradient(#c9b6b6 0 2px,transparent 2px 5px); }
-
-	.mp-epure { flex-direction:column; padding:8px; background:#fdf5f2; align-items:center; }
-	.mp-epure > * { width:60%; }
-	.mp-epure > :nth-child(1) { height:6px; background:#8b6f6f; border-radius:1px; margin:6px 0; }
-	.mp-epure > :nth-child(2) { height:36px; background:linear-gradient(135deg,#f4e0dc,#d4a5a5); border-radius:2px; margin-bottom:8px; }
-	.mp-epure > :nth-child(3) { height:32px; background:repeating-linear-gradient(#c9b6b6 0 2px,transparent 2px 5px); }
-
-	.mp-diptyque > :nth-child(1) { flex:0.9; background:linear-gradient(135deg,#f4e0dc,#d4a5a5); }
-	.mp-diptyque > :nth-child(2) { flex:1.1; background:#fdf5f2; padding:8px; display:flex; flex-direction:column; gap:4px; }
-	.mp-diptyque > :nth-child(2)::before { content:""; height:6px; background:#8b6f6f; border-radius:1px; width:80%; }
-	.mp-diptyque > :nth-child(2)::after { content:""; height:38px; background:repeating-linear-gradient(#c9b6b6 0 2px,transparent 2px 5px); }
-
-	.mp-immersif { flex-direction:column; }
-	.mp-immersif > :nth-child(1) { flex:1.5; background:linear-gradient(180deg,#f4e0dc,#8b6f6f); display:flex; align-items:flex-end; padding:8px; }
-	.mp-immersif > :nth-child(1)::after { content:""; width:70%; height:8px; background:#fff; border-radius:1px; }
-	.mp-immersif > :nth-child(2) { flex:1; background:#fff; padding:6px 10px; }
-	.mp-immersif > :nth-child(2)::before { content:""; display:block; height:70%; background:repeating-linear-gradient(#c9b6b6 0 2px,transparent 2px 5px); }
-
-	/* Palette picker */
-	.ap-art-swatches { display:flex; gap:6px; margin-top:8px; }
-	.ap-art-swatches span { display:block; width:22px; height:22px; border-radius:50%; border:1px solid rgba(0,0,0,.1); }
-
-	/* Font picker */
-	.ap-art-fontrow { display:flex; align-items:center; gap:14px; }
-	.ap-art-fontrow-label { font-weight:600; font-size:15px; margin:0; flex:1; }
-	.ap-art-fontrow-sample { font-size:26px; line-height:1; color:#3d2e2e; }
-	.ap-art-fontrow-sub { font-size:13px; color:#64748b; }
-
-	.ap-art-options-row {
-		display:flex; align-items:center; gap:16px; padding:12px 0;
-		border-bottom:1px dashed rgba(139,111,111,.15);
+	.ap-art-hero h1 { font-size: 28px; margin: 0 0 8px; font-family: Georgia, serif; font-style: italic; color: #3d2e2e; font-weight: 400; }
+	.ap-art-hero p { margin: 0; color: #8b6f6f; font-size: 16px; line-height: 1.55; max-width: 62ch; }
+	.ap-art-hero .ap-art-step {
+		display: inline-block; background: #8b6f6f; color: #fff;
+		font-size: 11px; padding: 4px 12px; border-radius: 12px;
+		margin-bottom: 12px; letter-spacing: 0.08em; font-weight: 600; text-transform: uppercase;
 	}
-	.ap-art-options-row:last-child { border:0; }
-	.ap-art-options-label { flex:1; margin:0; font-size:14px; }
+
+	.ap-art-saved {
+		background: #ecfdf5; border: 1px solid #10b981; color: #065f46;
+		padding: 14px 20px; border-radius: 10px; margin: 0 0 24px;
+		display: flex; align-items: center; gap: 10px; font-size: 15px; font-weight: 500;
+	}
+	.ap-art-saved::before { content: "✓"; font-size: 20px; color: #10b981; }
+
+	/* Grille des 8 gros cards */
+	.ap-art-styles {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+		gap: 20px;
+		margin: 0 0 40px;
+	}
+	.ap-art-style {
+		background: #fff; border: 3px solid #e2e8f0; border-radius: 14px;
+		padding: 0; cursor: pointer; text-align: left; overflow: hidden;
+		display: flex; flex-direction: column;
+		transition: all .25s cubic-bezier(.4,0,.2,1);
+		font-family: inherit; position: relative;
+	}
+	.ap-art-style:hover {
+		border-color: #d4a5a5; transform: translateY(-6px);
+		box-shadow: 0 20px 40px rgba(139,111,111,.18);
+	}
+	.ap-art-style:active { transform: translateY(-2px); }
+	.ap-art-style.is-active {
+		border-color: #10b981;
+		box-shadow: 0 0 0 4px rgba(16,185,129,.15), 0 10px 30px rgba(139,111,111,.15);
+	}
+	.ap-art-style.is-active::before {
+		content: "✓ EN LIGNE";
+		position: absolute; top: 12px; right: 12px; z-index: 2;
+		background: #10b981; color: #fff;
+		font-size: 11px; padding: 5px 12px; border-radius: 20px;
+		letter-spacing: 0.08em; font-weight: 700;
+		box-shadow: 0 3px 8px rgba(16,185,129,.3);
+	}
+
+	.ap-art-style-preview { height: 200px; border-bottom: 1px solid #e2e8f0; overflow: hidden; }
+	.mp { width: 100%; height: 100%; display: flex; }
+	.mp-editorial { flex-direction: column; }
+	.mp-editorial > :nth-child(1) { flex: 1.2; background: linear-gradient(135deg,#f4e0dc,#d4a5a5); }
+	.mp-editorial > :nth-child(2) { flex: 0.4; background: #fdf5f2; display: flex; align-items: center; justify-content: center; }
+	.mp-editorial > :nth-child(2)::before { content: ""; width: 60%; height: 10px; background: #8b6f6f; border-radius: 2px; }
+	.mp-editorial > :nth-child(3) { flex: 1; background: #fdf5f2; padding: 8px 20px; }
+	.mp-editorial > :nth-child(3)::before { content: ""; display: block; height: 70%; background: repeating-linear-gradient(#c9b6b6 0 2px, transparent 2px 6px); }
+
+	.mp-epure { flex-direction: column; padding: 12px; background: #fdf5f2; align-items: center; }
+	.mp-epure > * { width: 55%; }
+	.mp-epure > :nth-child(1) { height: 8px; background: #8b6f6f; border-radius: 2px; margin: 8px 0; }
+	.mp-epure > :nth-child(2) { height: 60px; background: linear-gradient(135deg,#f4e0dc,#d4a5a5); border-radius: 3px; margin-bottom: 12px; }
+	.mp-epure > :nth-child(3) { height: 50px; background: repeating-linear-gradient(#c9b6b6 0 2px, transparent 2px 6px); }
+
+	.mp-diptyque > :nth-child(1) { flex: 0.9; background: linear-gradient(135deg,#f4e0dc,#d4a5a5); }
+	.mp-diptyque > :nth-child(2) { flex: 1.1; background: #fdf5f2; padding: 16px; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
+	.mp-diptyque > :nth-child(2)::before { content: ""; height: 10px; background: #8b6f6f; border-radius: 2px; width: 80%; }
+	.mp-diptyque > :nth-child(2)::after { content: ""; height: 70px; background: repeating-linear-gradient(#c9b6b6 0 2px, transparent 2px 6px); }
+
+	.mp-immersif { flex-direction: column; }
+	.mp-immersif > :nth-child(1) { flex: 1.8; background: linear-gradient(180deg,#f4e0dc,#8b6f6f); display: flex; align-items: flex-end; padding: 16px; }
+	.mp-immersif > :nth-child(1)::after { content: ""; width: 70%; height: 12px; background: #fff; border-radius: 2px; }
+	.mp-immersif > :nth-child(2) { flex: 1; background: #fff; padding: 10px 16px; }
+	.mp-immersif > :nth-child(2)::before { content: ""; display: block; height: 70%; background: repeating-linear-gradient(#c9b6b6 0 2px, transparent 2px 6px); }
+
+	/* Palette override sur mockups */
+	.ap-art-style-preview[data-palette="blanc"] .mp > :first-child { background: linear-gradient(135deg,#ececec,#a8a8a8) !important; }
+	.ap-art-style-preview[data-palette="blanc"] .mp { background: #fff; }
+	.ap-art-style-preview[data-palette="blanc"] .mp > :not(:first-child) { background: #fff !important; }
+	.ap-art-style-preview[data-palette="aubergine"] .mp { background: #2a1e22 !important; }
+	.ap-art-style-preview[data-palette="aubergine"] .mp > * { background: #3a2a2c !important; }
+	.ap-art-style-preview[data-palette="aubergine"] .mp > :first-child { background: linear-gradient(135deg,#8b6f6f,#4a3739) !important; }
+	.ap-art-style-preview[data-palette="sauge"] .mp { background: #f5f2ec !important; }
+	.ap-art-style-preview[data-palette="sauge"] .mp > :not(:first-child) { background: #f5f2ec !important; }
+	.ap-art-style-preview[data-palette="sauge"] .mp > :first-child { background: linear-gradient(135deg,#c5a68d,#8e9976) !important; }
+
+	.ap-art-style-body { padding: 20px 22px 22px; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+	.ap-art-style-tag {
+		font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+		color: #d4a5a5; font-weight: 700;
+	}
+	.ap-art-style-name {
+		font-family: Georgia, serif; font-style: italic;
+		font-size: 24px; color: #3d2e2e; margin: 0; line-height: 1.1;
+	}
+	.ap-art-style-desc {
+		font-size: 14px; color: #64748b; line-height: 1.5; margin: 0; flex: 1;
+	}
+	.ap-art-style-cta {
+		display: flex; align-items: center; justify-content: space-between;
+		padding-top: 12px; margin-top: 4px;
+		border-top: 1px dashed rgba(139,111,111,.2);
+		font-size: 14px; font-weight: 600; color: #8b6f6f;
+	}
+	.ap-art-style-cta-arrow { transition: transform .2s; font-size: 18px; }
+	.ap-art-style:hover .ap-art-style-cta-arrow { transform: translateX(4px); }
+
+	/* Bandeau apercu global en bas */
+	.ap-art-actions {
+		background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+		padding: 20px 24px; margin: 32px 0 0;
+		display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+	}
+	.ap-art-actions-text { margin: 0; color: #64748b; font-size: 14px; flex: 1; }
+	.ap-art-actions-text strong { color: #3d2e2e; font-family: Georgia, serif; font-style: italic; }
+	.ap-art-view-btn {
+		display: inline-flex; align-items: center; gap: 8px;
+		background: #8b6f6f; color: #fff !important; padding: 12px 22px;
+		border-radius: 8px; text-decoration: none; font-weight: 600;
+		transition: all .2s; font-size: 15px;
+	}
+	.ap-art-view-btn:hover { background: #3d2e2e; transform: translateY(-2px); }
+
+	/* Options avancees en accordeon */
+	.ap-art-advanced {
+		background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+		margin: 24px 0 0;
+	}
+	.ap-art-advanced-toggle {
+		width: 100%; background: none; border: 0; padding: 18px 24px;
+		display: flex; align-items: center; justify-content: space-between;
+		cursor: pointer; font-size: 15px; font-weight: 600; color: #3d2e2e;
+		text-align: left; font-family: inherit;
+	}
+	.ap-art-advanced-toggle:hover { background: #faf5f2; }
+	.ap-art-advanced-toggle-icon { transition: transform .2s; color: #8b6f6f; font-size: 12px; }
+	.ap-art-advanced.is-open .ap-art-advanced-toggle-icon { transform: rotate(180deg); }
+	.ap-art-advanced-body {
+		display: none; padding: 0 24px 24px;
+		border-top: 1px solid #e2e8f0;
+	}
+	.ap-art-advanced.is-open .ap-art-advanced-body { display: block; }
+
+	.ap-art-adv-section { margin: 24px 0 0; }
+	.ap-art-adv-section h3 { margin: 0 0 12px; font-size: 14px; color: #3d2e2e; }
+	.ap-art-adv-section p.hint { margin: 0 0 14px; color: #64748b; font-size: 13px; }
+	.ap-art-adv-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }
+	.ap-art-adv-pick {
+		background: #fff; border: 2px solid #e2e8f0; border-radius: 10px;
+		padding: 12px; cursor: pointer; text-align: left; display: block;
+		transition: all .15s; position: relative;
+	}
+	.ap-art-adv-pick:hover { border-color: #c9b6b6; }
+	.ap-art-adv-pick input { position: absolute; opacity: 0; pointer-events: none; }
+	.ap-art-adv-pick:has(input:checked) { border-color: #d4a5a5; background: #fdf5f2; }
+	.ap-art-adv-pick-name { font-weight: 600; font-size: 13px; margin: 0 0 2px; }
+	.ap-art-adv-pick-sub { font-size: 11px; color: #64748b; margin: 0; }
+
+	.ap-art-swatches { display: flex; gap: 5px; margin-top: 6px; }
+	.ap-art-swatches span { display: block; width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(0,0,0,.08); }
+
+	.ap-art-option-row {
+		display: flex; align-items: center; gap: 16px; padding: 12px 0;
+		border-bottom: 1px dashed rgba(139,111,111,.15);
+	}
+	.ap-art-option-row:last-child { border: 0; }
+	.ap-art-option-label { flex: 1; margin: 0; font-size: 14px; }
 	.ap-art-btns {
-		display:inline-flex; background:#f1f5f9; border-radius:8px; padding:3px; gap:2px;
+		display: inline-flex; background: #f1f5f9; border-radius: 8px; padding: 3px; gap: 2px;
 	}
 	.ap-art-btns label {
-		padding:6px 14px; font-size:13px; border-radius:6px; cursor:pointer;
-		transition:all .15s; color:#64748b;
+		padding: 6px 14px; font-size: 13px; border-radius: 6px; cursor: pointer;
+		transition: all .15s; color: #64748b; margin: 0;
 	}
-	.ap-art-btns input { position:absolute; opacity:0; pointer-events:none; }
+	.ap-art-btns input { position: absolute; opacity: 0; pointer-events: none; }
 	.ap-art-btns:has(input[value="left"]:checked) label[data-v="left"],
 	.ap-art-btns:has(input[value="center"]:checked) label[data-v="center"],
 	.ap-art-btns:has(input[value="narrow"]:checked) label[data-v="narrow"],
 	.ap-art-btns:has(input[value="medium"]:checked) label[data-v="medium"],
 	.ap-art-btns:has(input[value="wide"]:checked) label[data-v="wide"] {
-		background:#fff; color:#8b6f6f; font-weight:600; box-shadow:0 1px 3px rgba(0,0,0,.06);
+		background: #fff; color: #8b6f6f; font-weight: 600; box-shadow: 0 1px 3px rgba(0,0,0,.06);
 	}
 
-	/* Toggle switch */
-	.ap-toggle { position:relative; display:inline-block; width:44px; height:24px; }
-	.ap-toggle input { opacity:0; width:0; height:0; }
-	.ap-toggle-slider { position:absolute; inset:0; background:#cbd5e1; border-radius:24px; cursor:pointer; transition:.2s; }
-	.ap-toggle-slider::before { content:""; position:absolute; height:18px; width:18px; left:3px; top:3px; background:#fff; border-radius:50%; transition:.2s; }
-	.ap-toggle input:checked + .ap-toggle-slider { background:#d4a5a5; }
-	.ap-toggle input:checked + .ap-toggle-slider::before { transform:translateX(20px); }
+	.ap-toggle { position: relative; display: inline-block; width: 44px; height: 24px; }
+	.ap-toggle input { opacity: 0; width: 0; height: 0; }
+	.ap-toggle-slider { position: absolute; inset: 0; background: #cbd5e1; border-radius: 24px; cursor: pointer; transition: .2s; }
+	.ap-toggle-slider::before { content: ""; position: absolute; height: 18px; width: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+	.ap-toggle input:checked + .ap-toggle-slider { background: #d4a5a5; }
+	.ap-toggle input:checked + .ap-toggle-slider::before { transform: translateX(20px); }
 
-	/* Custom colors */
-	.ap-art-custom-colors { display:none; padding:14px; background:#faf5f2; border-radius:8px; margin-top:12px; gap:14px; }
-	.ap-art-custom-colors.is-visible { display:grid; grid-template-columns:repeat(3,1fr); }
-	.ap-art-color-field label { display:block; font-size:12px; color:#64748b; margin-bottom:4px; }
-	.ap-art-color-field input[type=color] { width:100%; height:36px; border:1px solid #e2e8f0; border-radius:6px; cursor:pointer; }
+	.ap-art-custom-colors { display: none; padding: 14px; background: #faf5f2; border-radius: 8px; margin-top: 12px; gap: 14px; }
+	.ap-art-custom-colors.is-visible { display: grid; grid-template-columns: repeat(3, 1fr); }
+	.ap-art-color-field label { display: block; font-size: 12px; color: #64748b; margin-bottom: 4px; }
+	.ap-art-color-field input[type=color] { width: 100%; height: 36px; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; }
 
-	/* Submit bar */
-	.ap-art-submit {
-		position:sticky; bottom:0; background:#fdf5f2;
-		padding:16px 24px; border:1px solid #d4a5a5;
-		border-radius:12px; margin-top:24px;
-		display:flex; align-items:center; justify-content:space-between; gap:16px;
-		box-shadow:0 -4px 20px rgba(139,111,111,.1);
+	.ap-art-save-adv-btn {
+		background: #8b6f6f; color: #fff; border: 0; padding: 10px 22px;
+		border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 20px;
 	}
-	.ap-art-submit-note { margin:0; color:#8b6f6f; font-size:13px; }
-	.ap-art-submit .button-primary { background:#8b6f6f; border-color:#8b6f6f; padding:8px 24px; height:auto; }
-	.ap-art-submit .button-primary:hover { background:#3d2e2e; border-color:#3d2e2e; }
-
-	/* Presets 1-clic */
-	.ap-art-presets-card { background: linear-gradient(135deg, #fdf5f2 0%, #f4e0dc 100%); border-color: #d4a5a5; }
-	.ap-art-badge {
-		display: inline-block; background: #8b6f6f; color: #fff;
-		font-size: 11px; padding: 3px 10px; border-radius: 12px;
-		margin-left: 8px; letter-spacing: 0.06em; font-weight: 600; text-transform: uppercase;
-	}
-	.ap-art-preset {
-		background: #fff; border: 2px solid #e2e8f0; border-radius: 12px;
-		padding: 16px; cursor: pointer; text-align: left;
-		display: flex; flex-direction: column; gap: 8px;
-		transition: all .2s cubic-bezier(.4,0,.2,1); position: relative;
-		font-family: inherit;
-	}
-	.ap-art-preset:hover {
-		border-color: #d4a5a5; transform: translateY(-4px);
-		box-shadow: 0 12px 24px rgba(139,111,111,.2);
-	}
-	.ap-art-preset:active { transform: translateY(-1px); }
-	.ap-art-preset.is-current {
-		border-color: #8b6f6f; background: #fdf5f2;
-		box-shadow: 0 0 0 3px rgba(139,111,111,.15);
-	}
-	.ap-art-preset.is-current::after {
-		content: "✓ Actif"; position: absolute; top: 8px; right: 8px;
-		background: #8b6f6f; color: #fff; font-size: 10px;
-		padding: 3px 8px; border-radius: 10px; letter-spacing: 0.06em; font-weight: 600;
-	}
-	.ap-art-preset-tag {
-		font-size: 10px; text-transform: uppercase; letter-spacing: 0.12em;
-		color: #d4a5a5; font-weight: 600;
-	}
-	.ap-art-preset-label { font-family: Georgia, serif; font-style: italic; font-size: 20px; color: #3d2e2e; line-height: 1.15; margin: 0; }
-	.ap-art-preset-mini { height: 90px; border-radius: 6px; border: 1px solid rgba(139,111,111,.15); overflow: hidden; margin: 4px 0 6px; }
-	.ap-art-preset-desc { font-size: 12px; color: #64748b; line-height: 1.45; flex: 1; }
-	.ap-art-preset-cta {
-		font-size: 12px; color: #8b6f6f; font-weight: 600;
-		border-top: 1px dashed rgba(139,111,111,.2); padding-top: 8px;
-		display: flex; align-items: center; gap: 4px;
-		transition: gap .2s;
-	}
-	.ap-art-preset:hover .ap-art-preset-cta { gap: 8px; }
-
-	/* Preset mini-mockups adopte la palette */
-	.ap-art-preset-mini[data-palette="blanc"] > :first-child { background: linear-gradient(135deg,#ececec,#c9c9c9) !important; }
-	.ap-art-preset-mini[data-palette="blanc"] { background: #fff; }
-	.ap-art-preset-mini[data-palette="aubergine"] { background: #2a1e22 !important; }
-	.ap-art-preset-mini[data-palette="aubergine"] > * { background: #3a2a2c !important; }
-	.ap-art-preset-mini[data-palette="aubergine"] > :first-child { background: linear-gradient(135deg,#8b6f6f,#4a3739) !important; }
-	.ap-art-preset-mini[data-palette="sauge"] { background: #f5f2ec !important; }
-	.ap-art-preset-mini[data-palette="sauge"] > :first-child { background: linear-gradient(135deg,#c5a68d,#8e9976) !important; }
-
-	/* Preview link */
-	.ap-art-preview-link {
-		display:inline-flex; align-items:center; gap:6px;
-		background:#fff; border:1px solid #d4a5a5; color:#8b6f6f;
-		padding:8px 16px; border-radius:8px; text-decoration:none; font-size:13px; font-weight:500;
-		transition:all .15s;
-	}
-	.ap-art-preview-link:hover { background:#d4a5a5; color:#fff; }
+	.ap-art-save-adv-btn:hover { background: #3d2e2e; }
 	</style>
 
 	<div class="wrap ap-art-wrap">
-		<h1>🎨 Style des articles</h1>
-		<p class="ap-art-lead">Choisis en 1 clic l'apparence de tes articles. Layout, couleurs, typographie, options. Les changements s'appliquent immediatement a TOUS tes articles.</p>
 
 		<?php if ( $saved ) : ?>
-			<div class="notice notice-success is-dismissible"><p>✓ Style enregistre. Va voir un article pour tester.</p></div>
+			<div class="ap-art-saved">Style enregistré ! Va voir un article pour tester.</div>
 		<?php endif; ?>
 
+		<div class="ap-art-hero">
+			<span class="ap-art-step">Étape unique</span>
+			<h1>Choisis le style de tes articles</h1>
+			<p>Clique sur l'un des 8 styles ci-dessous. C'est tout. Ton choix s'applique immédiatement à tous tes articles. Tu peux changer d'avis à tout moment.</p>
+		</div>
+
+		<!-- ═══════════ 8 GROS STYLES CLIQUABLES ═══════════ -->
 		<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>" id="ap-art-form">
 			<input type="hidden" name="action" value="ann_art_save">
 			<?php wp_nonce_field( 'ann_art_save' ); ?>
 
-			<!-- ═══════════ PRESETS EN 1 CLIC ═══════════ -->
-			<div class="ap-art-card ap-art-presets-card">
-				<h2>⚡ Presentations pretes a l'emploi <span class="ap-art-badge">1 clic</span></h2>
-				<p>Clique sur un style ci-dessous : <strong>tout change d'un coup et c'est enregistre</strong> (layout, couleurs, typo, options). Tu peux affiner ensuite dans les sections en dessous.</p>
-				<div class="ap-art-grid ap-art-grid-4">
-					<?php foreach ( ann_art_presets() as $key => $p ) :
-						$sett = $p['settings']; ?>
-						<button type="button"
-							class="ap-art-preset"
-							data-preset='<?php echo esc_attr( wp_json_encode( $sett ) ); ?>'>
-							<span class="ap-art-preset-tag"><?php echo esc_html( $p['tag'] ); ?></span>
-							<span class="ap-art-preset-label"><?php echo esc_html( $p['label'] ); ?></span>
-							<div class="ap-art-preset-mini mp mp-<?php echo esc_attr( $sett['layout'] ); ?>"
-								data-palette="<?php echo esc_attr( $sett['palette'] ); ?>">
+			<!-- Champs cachés qui portent l'état actuel (updated par le JS click) -->
+			<input type="hidden" name="layout"       value="<?php echo esc_attr( $s['layout'] ); ?>">
+			<input type="hidden" name="palette"      value="<?php echo esc_attr( $s['palette'] ); ?>">
+			<input type="hidden" name="fontpair"     value="<?php echo esc_attr( $s['fontpair'] ); ?>">
+			<input type="hidden" name="title_align"  value="<?php echo esc_attr( $s['title_align'] ); ?>">
+			<input type="hidden" name="column_width" value="<?php echo esc_attr( $s['column_width'] ); ?>">
+			<input type="hidden" name="dropcap"      value="<?php echo esc_attr( $s['dropcap'] ); ?>">
+			<input type="hidden" name="sticky_image" value="<?php echo esc_attr( $s['sticky_image'] ); ?>">
+			<input type="hidden" name="custom_bg"     value="<?php echo esc_attr( $s['custom_bg'] ); ?>">
+			<input type="hidden" name="custom_text"   value="<?php echo esc_attr( $s['custom_text'] ); ?>">
+			<input type="hidden" name="custom_accent" value="<?php echo esc_attr( $s['custom_accent'] ); ?>">
+
+			<div class="ap-art-styles">
+				<?php foreach ( $presets as $key => $p ) :
+					$sett = $p['settings'];
+					$is_active = ( $active_preset === $key ); ?>
+					<button type="button"
+						class="ap-art-style <?php echo $is_active ? 'is-active' : ''; ?>"
+						data-preset='<?php echo esc_attr( wp_json_encode( $sett ) ); ?>'>
+						<div class="ap-art-style-preview" data-palette="<?php echo esc_attr( $sett['palette'] ); ?>">
+							<div class="mp mp-<?php echo esc_attr( $sett['layout'] ); ?>">
 								<div></div><div></div><div></div>
 							</div>
-							<span class="ap-art-preset-desc"><?php echo esc_html( $p['desc'] ); ?></span>
-							<span class="ap-art-preset-cta">Appliquer et enregistrer →</span>
-						</button>
-					<?php endforeach; ?>
-				</div>
-			</div>
-
-			<!-- ═══════════ LAYOUT ═══════════ -->
-			<div class="ap-art-card">
-				<h2>1. Mise en page</h2>
-				<p>Choisis la structure d'un article : ou l'image, le titre, le texte.</p>
-				<div class="ap-art-grid ap-art-grid-4">
-					<?php foreach ( $layouts as $key => $lay ) : ?>
-						<label class="ap-art-pick">
-							<input type="radio" name="layout" value="<?php echo esc_attr( $key ); ?>" <?php checked( $s['layout'], $key ); ?>>
-							<p class="ap-art-pick-title"><?php echo esc_html( $lay['emoji'] . ' ' . $lay['label'] ); ?></p>
-							<p class="ap-art-pick-desc"><?php echo esc_html( $lay['desc'] ); ?></p>
-							<div class="ap-art-preview">
-								<div class="mp mp-<?php echo esc_attr( $key ); ?>">
-									<div></div><div></div><div></div>
-								</div>
+						</div>
+						<div class="ap-art-style-body">
+							<span class="ap-art-style-tag"><?php echo esc_html( $p['tag'] ); ?></span>
+							<h2 class="ap-art-style-name"><?php echo esc_html( $p['label'] ); ?></h2>
+							<p class="ap-art-style-desc"><?php echo esc_html( $p['desc'] ); ?></p>
+							<div class="ap-art-style-cta">
+								<span>Choisir ce style</span>
+								<span class="ap-art-style-cta-arrow">→</span>
 							</div>
-						</label>
-					<?php endforeach; ?>
-				</div>
+						</div>
+					</button>
+				<?php endforeach; ?>
 			</div>
 
-			<!-- ═══════════ COULEURS ═══════════ -->
-			<div class="ap-art-card">
-				<h2>2. Couleurs</h2>
-				<p>Palette a appliquer aux articles. Choisis un preset ou passe en mode personnalise.</p>
-				<div class="ap-art-grid ap-art-grid-4">
-					<?php foreach ( $palettes as $key => $pal ) : ?>
-						<label class="ap-art-pick">
-							<input type="radio" name="palette" value="<?php echo esc_attr( $key ); ?>" <?php checked( $s['palette'], $key ); ?>>
-							<p class="ap-art-pick-title"><?php echo esc_html( $pal['label'] ); ?></p>
-							<div class="ap-art-swatches">
-								<span style="background:<?php echo esc_attr( $pal['bg'] ); ?>;"></span>
-								<span style="background:<?php echo esc_attr( $pal['text'] ); ?>;"></span>
-								<span style="background:<?php echo esc_attr( $pal['accent'] ); ?>;"></span>
-								<span style="background:<?php echo esc_attr( $pal['accent_strong'] ); ?>;"></span>
-							</div>
-						</label>
-					<?php endforeach; ?>
-					<label class="ap-art-pick">
-						<input type="radio" name="palette" value="custom" id="ap-art-palette-custom" <?php checked( $s['palette'], 'custom' ); ?>>
-						<p class="ap-art-pick-title">🎨 Personnalise</p>
-						<p class="ap-art-pick-desc">Choisis tes propres couleurs ci-dessous.</p>
-					</label>
-				</div>
-				<div class="ap-art-custom-colors <?php echo 'custom' === $s['palette'] ? 'is-visible' : ''; ?>" id="ap-art-custom">
-					<div class="ap-art-color-field">
-						<label>Fond</label>
-						<input type="color" name="custom_bg" value="<?php echo esc_attr( $s['custom_bg'] ?: '#fdf5f2' ); ?>">
-					</div>
-					<div class="ap-art-color-field">
-						<label>Texte</label>
-						<input type="color" name="custom_text" value="<?php echo esc_attr( $s['custom_text'] ?: '#3d2e2e' ); ?>">
-					</div>
-					<div class="ap-art-color-field">
-						<label>Accent</label>
-						<input type="color" name="custom_accent" value="<?php echo esc_attr( $s['custom_accent'] ?: '#d4a5a5' ); ?>">
-					</div>
-				</div>
-			</div>
-
-			<!-- ═══════════ TYPO ═══════════ -->
-			<div class="ap-art-card">
-				<h2>3. Typographie</h2>
-				<p>Paire de polices : une pour les titres, une pour le texte.</p>
-				<div class="ap-art-grid ap-art-grid-2">
-					<?php foreach ( $fonts as $key => $f ) :
-						$sample_style = 'font-family:' . esc_attr( $f['display'] ) . ';font-style:italic;';
-						$sub_style    = 'font-family:' . esc_attr( $f['body'] ) . ';'; ?>
-						<label class="ap-art-pick">
-							<input type="radio" name="fontpair" value="<?php echo esc_attr( $key ); ?>" <?php checked( $s['fontpair'], $key ); ?>>
-							<div class="ap-art-fontrow">
-								<div style="flex:1;">
-									<p class="ap-art-pick-title"><?php echo esc_html( $f['label'] ); ?></p>
-									<p class="ap-art-fontrow-sample" style="<?php echo $sample_style; ?>">Anna Photo</p>
-									<p class="ap-art-fontrow-sub" style="<?php echo $sub_style; ?>">Photographe de femmes, guidee par la douceur.</p>
-								</div>
-							</div>
-						</label>
-					<?php endforeach; ?>
-				</div>
-			</div>
-
-			<!-- ═══════════ OPTIONS ═══════════ -->
-			<div class="ap-art-card">
-				<h2>4. Options fines</h2>
-				<p>Petits reglages qui font la difference.</p>
-
-				<div class="ap-art-options-row">
-					<p class="ap-art-options-label"><strong>Alignement du titre</strong></p>
-					<div class="ap-art-btns">
-						<label data-v="left"><input type="radio" name="title_align" value="left" <?php checked( $s['title_align'], 'left' ); ?>>Gauche</label>
-						<label data-v="center"><input type="radio" name="title_align" value="center" <?php checked( $s['title_align'], 'center' ); ?>>Centre</label>
-					</div>
-				</div>
-
-				<div class="ap-art-options-row">
-					<p class="ap-art-options-label"><strong>Largeur de la colonne de texte</strong></p>
-					<div class="ap-art-btns">
-						<label data-v="narrow"><input type="radio" name="column_width" value="narrow" <?php checked( $s['column_width'], 'narrow' ); ?>>Etroite</label>
-						<label data-v="medium"><input type="radio" name="column_width" value="medium" <?php checked( $s['column_width'], 'medium' ); ?>>Moyenne</label>
-						<label data-v="wide"><input type="radio" name="column_width" value="wide" <?php checked( $s['column_width'], 'wide' ); ?>>Large</label>
-					</div>
-				</div>
-
-				<div class="ap-art-options-row">
-					<p class="ap-art-options-label"><strong>Lettrine</strong> (grosse premiere lettre du 1er paragraphe)</p>
-					<label class="ap-toggle">
-						<input type="checkbox" name="dropcap" value="1" <?php checked( $s['dropcap'], 1 ); ?>>
-						<span class="ap-toggle-slider"></span>
-					</label>
-				</div>
-
-				<div class="ap-art-options-row">
-					<p class="ap-art-options-label"><strong>Image collante</strong> au scroll (uniquement Diptyque)</p>
-					<label class="ap-toggle">
-						<input type="checkbox" name="sticky_image" value="1" <?php checked( $s['sticky_image'], 1 ); ?>>
-						<span class="ap-toggle-slider"></span>
-					</label>
-				</div>
-			</div>
-
-			<!-- ═══════════ SUBMIT ═══════════ -->
-			<div class="ap-art-submit">
-				<p class="ap-art-submit-note">Les changements s'appliquent a <strong>tous les articles</strong> immediatement apres l'enregistrement.</p>
-				<div style="display:flex; gap:12px; align-items:center;">
-					<?php
-					$first_post = get_posts( array( 'numberposts' => 1, 'post_status' => 'publish', 'post_type' => 'post' ) );
-					if ( ! empty( $first_post ) ) : ?>
-						<a href="<?php echo esc_url( get_permalink( $first_post[0]->ID ) ); ?>" target="_blank" rel="noopener" class="ap-art-preview-link">
-							👁️ Voir un article
-						</a>
-					<?php endif; ?>
-					<button type="submit" class="button button-primary">💾 Enregistrer le style</button>
-				</div>
+			<div class="ap-art-actions">
+				<p class="ap-art-actions-text">
+					<strong>Style actuel :</strong>
+					<?php echo esc_html( $active_preset ? $presets[ $active_preset ]['label'] : 'Personnalisé' ); ?>
+				</p>
+				<?php $first_post = get_posts( array( 'numberposts' => 1, 'post_status' => 'publish', 'post_type' => 'post' ) );
+				if ( ! empty( $first_post ) ) : ?>
+					<a href="<?php echo esc_url( get_permalink( $first_post[0]->ID ) ); ?>" target="_blank" rel="noopener" class="ap-art-view-btn">
+						👁️ Voir un article
+					</a>
+				<?php endif; ?>
 			</div>
 		</form>
+
+		<!-- ═══════════ OPTIONS AVANCÉES (accordéon fermé par défaut) ═══════════ -->
+		<div class="ap-art-advanced" id="ap-art-advanced">
+			<button type="button" class="ap-art-advanced-toggle" id="ap-art-advanced-toggle">
+				<span>🔧 Options avancées (pour bidouiller à la main)</span>
+				<span class="ap-art-advanced-toggle-icon">▼</span>
+			</button>
+			<div class="ap-art-advanced-body">
+				<form method="post" action="<?php echo esc_url( admin_url( 'admin-post.php' ) ); ?>">
+					<input type="hidden" name="action" value="ann_art_save">
+					<?php wp_nonce_field( 'ann_art_save' ); ?>
+
+					<div class="ap-art-adv-section">
+						<h3>Mise en page</h3>
+						<p class="hint">Structure de l'article (image, titre, texte).</p>
+						<div class="ap-art-adv-grid">
+							<?php foreach ( $layouts as $key => $lay ) : ?>
+								<label class="ap-art-adv-pick">
+									<input type="radio" name="layout" value="<?php echo esc_attr( $key ); ?>" <?php checked( $s['layout'], $key ); ?>>
+									<p class="ap-art-adv-pick-name"><?php echo esc_html( $lay['emoji'] . ' ' . $lay['label'] ); ?></p>
+									<p class="ap-art-adv-pick-sub"><?php echo esc_html( $lay['desc'] ); ?></p>
+								</label>
+							<?php endforeach; ?>
+						</div>
+					</div>
+
+					<div class="ap-art-adv-section">
+						<h3>Couleurs</h3>
+						<div class="ap-art-adv-grid">
+							<?php foreach ( $palettes as $key => $pal ) : ?>
+								<label class="ap-art-adv-pick">
+									<input type="radio" name="palette" value="<?php echo esc_attr( $key ); ?>" <?php checked( $s['palette'], $key ); ?>>
+									<p class="ap-art-adv-pick-name"><?php echo esc_html( $pal['label'] ); ?></p>
+									<div class="ap-art-swatches">
+										<span style="background:<?php echo esc_attr( $pal['bg'] ); ?>;"></span>
+										<span style="background:<?php echo esc_attr( $pal['text'] ); ?>;"></span>
+										<span style="background:<?php echo esc_attr( $pal['accent'] ); ?>;"></span>
+									</div>
+								</label>
+							<?php endforeach; ?>
+							<label class="ap-art-adv-pick">
+								<input type="radio" name="palette" value="custom" <?php checked( $s['palette'], 'custom' ); ?>>
+								<p class="ap-art-adv-pick-name">🎨 Perso</p>
+								<p class="ap-art-adv-pick-sub">Choisis tes couleurs.</p>
+							</label>
+						</div>
+						<div class="ap-art-custom-colors <?php echo 'custom' === $s['palette'] ? 'is-visible' : ''; ?>" id="ap-art-custom">
+							<div class="ap-art-color-field"><label>Fond</label><input type="color" name="custom_bg" value="<?php echo esc_attr( $s['custom_bg'] ?: '#fdf5f2' ); ?>"></div>
+							<div class="ap-art-color-field"><label>Texte</label><input type="color" name="custom_text" value="<?php echo esc_attr( $s['custom_text'] ?: '#3d2e2e' ); ?>"></div>
+							<div class="ap-art-color-field"><label>Accent</label><input type="color" name="custom_accent" value="<?php echo esc_attr( $s['custom_accent'] ?: '#d4a5a5' ); ?>"></div>
+						</div>
+					</div>
+
+					<div class="ap-art-adv-section">
+						<h3>Typographie</h3>
+						<div class="ap-art-adv-grid">
+							<?php foreach ( $fonts as $key => $f ) : ?>
+								<label class="ap-art-adv-pick">
+									<input type="radio" name="fontpair" value="<?php echo esc_attr( $key ); ?>" <?php checked( $s['fontpair'], $key ); ?>>
+									<p class="ap-art-adv-pick-name" style="font-family:<?php echo esc_attr( $f['display'] ); ?>; font-style:italic; font-size:16px;">Anna Photo</p>
+									<p class="ap-art-adv-pick-sub"><?php echo esc_html( $f['label'] ); ?></p>
+								</label>
+							<?php endforeach; ?>
+						</div>
+					</div>
+
+					<div class="ap-art-adv-section">
+						<h3>Détails</h3>
+						<div class="ap-art-option-row">
+							<p class="ap-art-option-label"><strong>Alignement titre</strong></p>
+							<div class="ap-art-btns">
+								<label data-v="left"><input type="radio" name="title_align" value="left" <?php checked( $s['title_align'], 'left' ); ?>>Gauche</label>
+								<label data-v="center"><input type="radio" name="title_align" value="center" <?php checked( $s['title_align'], 'center' ); ?>>Centre</label>
+							</div>
+						</div>
+						<div class="ap-art-option-row">
+							<p class="ap-art-option-label"><strong>Largeur colonne texte</strong></p>
+							<div class="ap-art-btns">
+								<label data-v="narrow"><input type="radio" name="column_width" value="narrow" <?php checked( $s['column_width'], 'narrow' ); ?>>Étroite</label>
+								<label data-v="medium"><input type="radio" name="column_width" value="medium" <?php checked( $s['column_width'], 'medium' ); ?>>Moyenne</label>
+								<label data-v="wide"><input type="radio" name="column_width" value="wide" <?php checked( $s['column_width'], 'wide' ); ?>>Large</label>
+							</div>
+						</div>
+						<div class="ap-art-option-row">
+							<p class="ap-art-option-label"><strong>Grosse 1ère lettre</strong> (lettrine)</p>
+							<label class="ap-toggle">
+								<input type="checkbox" name="dropcap" value="1" <?php checked( $s['dropcap'], 1 ); ?>>
+								<span class="ap-toggle-slider"></span>
+							</label>
+						</div>
+						<div class="ap-art-option-row">
+							<p class="ap-art-option-label"><strong>Image collante au scroll</strong> (Diptyque)</p>
+							<label class="ap-toggle">
+								<input type="checkbox" name="sticky_image" value="1" <?php checked( $s['sticky_image'], 1 ); ?>>
+								<span class="ap-toggle-slider"></span>
+							</label>
+						</div>
+					</div>
+
+					<button type="submit" class="ap-art-save-adv-btn">💾 Enregistrer mes réglages avancés</button>
+				</form>
+			</div>
+		</div>
+
 	</div>
 
 	<script>
-	// 1) Toggle affichage des couleurs custom
+	// 1) Click sur un des 8 styles = remplit les hidden fields + submit
+	(function () {
+		var form = document.getElementById('ap-art-form');
+		if (!form) return;
+		document.querySelectorAll('.ap-art-style').forEach(function (btn) {
+			btn.addEventListener('click', function () {
+				var data;
+				try { data = JSON.parse(btn.getAttribute('data-preset')); }
+				catch (e) { return; }
+				Object.keys(data).forEach(function (name) {
+					var input = form.querySelector('input[name="' + name + '"]');
+					if (input) input.value = data[name];
+				});
+				document.querySelectorAll('.ap-art-style').forEach(function (b) { b.classList.remove('is-active'); });
+				btn.classList.add('is-active');
+				btn.querySelector('.ap-art-style-cta').innerHTML = '<span>⏳ Enregistrement...</span>';
+				setTimeout(function () { form.submit(); }, 200);
+			});
+		});
+	})();
+
+	// 2) Accordéon options avancées
+	(function () {
+		var toggle = document.getElementById('ap-art-advanced-toggle');
+		var box    = document.getElementById('ap-art-advanced');
+		if (toggle && box) {
+			toggle.addEventListener('click', function () { box.classList.toggle('is-open'); });
+		}
+	})();
+
+	// 3) Custom colors visible si palette=custom
 	document.addEventListener('change', function (e) {
 		if (e.target.name === 'palette') {
 			var custom = document.getElementById('ap-art-custom');
 			if (custom) custom.classList.toggle('is-visible', e.target.value === 'custom');
 		}
 	});
-
-	// 2) Presets : click = applique TOUT + submit form (1 clic = enregistre)
-	(function () {
-		var form = document.getElementById('ap-art-form');
-		if (!form) return;
-		var presets = document.querySelectorAll('.ap-art-preset');
-
-		// Compare l'etat actuel du formulaire a un preset donne (pour badge "Actif")
-		function currentSettings() {
-			var fd = new FormData(form);
-			return {
-				layout:       fd.get('layout'),
-				palette:      fd.get('palette'),
-				fontpair:     fd.get('fontpair'),
-				title_align:  fd.get('title_align'),
-				column_width: fd.get('column_width'),
-				dropcap:      fd.get('dropcap') ? 1 : 0,
-				sticky_image: fd.get('sticky_image') ? 1 : 0,
-			};
-		}
-		function matches(a, b) {
-			var keys = ['layout','palette','fontpair','title_align','column_width','dropcap','sticky_image'];
-			for (var i = 0; i < keys.length; i++) {
-				if (String(a[keys[i]]) !== String(b[keys[i]])) return false;
-			}
-			return true;
-		}
-		function refreshActiveBadges() {
-			var cur = currentSettings();
-			presets.forEach(function (p) {
-				var data = {};
-				try { data = JSON.parse(p.getAttribute('data-preset')); } catch (e) {}
-				p.classList.toggle('is-current', matches(cur, {
-					layout: data.layout, palette: data.palette, fontpair: data.fontpair,
-					title_align: data.title_align, column_width: data.column_width,
-					dropcap: data.dropcap ? 1 : 0, sticky_image: data.sticky_image ? 1 : 0,
-				}));
-			});
-		}
-		refreshActiveBadges();
-
-		presets.forEach(function (btn) {
-			btn.addEventListener('click', function () {
-				var data;
-				try { data = JSON.parse(btn.getAttribute('data-preset')); }
-				catch (e) { return; }
-
-				// Applique chaque valeur au formulaire
-				Object.keys(data).forEach(function (name) {
-					var value = data[name];
-					// Radios
-					var radios = form.querySelectorAll('input[type=radio][name="' + name + '"]');
-					if (radios.length) {
-						radios.forEach(function (r) { r.checked = (r.value === String(value)); });
-						return;
-					}
-					// Checkboxes (dropcap, sticky_image)
-					var check = form.querySelector('input[type=checkbox][name="' + name + '"]');
-					if (check) { check.checked = !!value; return; }
-					// Text/hidden
-					var field = form.querySelector('[name="' + name + '"]');
-					if (field) field.value = value;
-				});
-
-				// Feedback visuel avant submit
-				btn.classList.add('is-current');
-				btn.querySelector('.ap-art-preset-cta').innerHTML = '⏳ Enregistrement...';
-
-				// Ferme le custom-colors si palette != custom
-				var custom = document.getElementById('ap-art-custom');
-				if (custom) custom.classList.toggle('is-visible', data.palette === 'custom');
-
-				// Submit le form -> save + reload
-				setTimeout(function () { form.submit(); }, 150);
-			});
-		});
-	})();
 	</script>
 	<?php
 }
+
 
 /* ===========================================================================
  * Front-end : enqueue Google Font + inline CSS + body class
