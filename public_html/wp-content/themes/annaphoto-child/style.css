@@ -586,7 +586,9 @@ body.single-post article.post h1 {
     font-weight: 400 !important;
 }
 
-/* Corps de l'article - classes generiques + Bard */
+/* Corps de l'article - classes generiques + Bard
+   Cadre proportionnel : largeur adaptative via clamp() +
+   padding-inline pour respirer sur mobile sans se coller aux bords. */
 body.single-post .entry-content,
 body.single-post .post-content,
 body.single-post .post-main,
@@ -595,14 +597,37 @@ body.single-post article.post .post-body {
     font-family: var(--ap-art-body, inherit) !important;
     color: var(--ap-art-text, #3d2e2e) !important;
     line-height: 1.75;
-    font-size: 17px;
+    font-size: clamp(15px, 1.6vw, 18px);
+    max-width: clamp(320px, 88vw, 720px) !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-left: clamp(16px, 4vw, 32px) !important;
+    padding-right: clamp(16px, 4vw, 32px) !important;
+    box-sizing: border-box;
 }
+/* Texte centre et sans gaps disgracieux (fini le justify de Bard) */
 body.single-post .entry-content p,
 body.single-post .post-content p,
 body.single-post article.post p {
     margin: 0 0 1.2em;
     color: var(--ap-art-text, #3d2e2e) !important;
     font-family: var(--ap-art-body, inherit) !important;
+    text-align: center !important;
+    text-wrap: pretty;
+    hyphens: auto;
+    word-spacing: normal !important;
+}
+/* Titre et meta centres aussi pour la coherence */
+body.single-post .entry-header,
+body.single-post .post-header,
+body.single-post .entry-title,
+body.single-post .post-title,
+body.single-post .entry-meta,
+body.single-post .post-meta {
+    text-align: center !important;
+    max-width: clamp(320px, 88vw, 720px);
+    margin-left: auto !important;
+    margin-right: auto !important;
 }
 body.single-post .entry-content a,
 body.single-post .post-content a,
@@ -679,18 +704,19 @@ body.ap-col-wide article.post .post-inner {
     max-width: 900px !important; margin-left: auto !important; margin-right: auto !important;
 }
 
-/* Lettrine */
+/* Lettrine : compatible avec le texte centre (pas de float, alignement vertical propre) */
 body.ap-dropcap .entry-content > p:first-of-type::first-letter,
 body.ap-dropcap .post-content > p:first-of-type::first-letter,
 body.ap-dropcap article.post p:first-of-type::first-letter {
     font-family: var(--ap-art-display) !important;
     font-style: italic;
-    font-size: 4.2em;
-    float: left;
+    font-size: 3.2em;
     line-height: 0.9;
-    padding: 6px 12px 0 0;
+    vertical-align: -0.35em;
+    padding-right: 6px;
     color: var(--ap-art-accent-strong) !important;
     font-weight: 400;
+    float: none;
 }
 
 /* ═══ Layout 1 : EDITORIAL COUVERTURE ═══ */
