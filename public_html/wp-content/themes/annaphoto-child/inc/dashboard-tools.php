@@ -22,6 +22,10 @@ add_action( 'wp_dashboard_setup', 'annaphoto_tools_dashboard_widget', 5 );
 function annaphoto_tools_dashboard_widget() {
 	if ( ! current_user_can( 'edit_posts' ) ) { return; }
 
+	// Retire l'ancien widget "Anna Photo — Prospection" du plugin, on regroupe tout
+	remove_meta_box( 'ann_widget', 'dashboard', 'normal' );
+	remove_meta_box( 'ann_widget', 'dashboard', 'side' );
+
 	wp_add_dashboard_widget(
 		'annaphoto_tools_hub',
 		'🛠️ Tous mes outils Anna Photo',
@@ -70,9 +74,10 @@ function annaphoto_tools_dashboard_render() {
 			'url'   => admin_url( 'admin.php?page=ann-article-style' ),
 			'emoji' => '🎨',
 			'title' => 'Style des articles',
-			'desc'  => 'Choisir une presentation en 1 clic',
+			'desc'  => 'Choisir la presentation de tes articles en 1 clic',
 			'accent'=> '#d4a5a5',
 			'condition' => true,
+			'primary' => true,
 		),
 		'rappels' => array(
 			'url'   => admin_url( 'admin.php?page=ann-agent' ),
@@ -239,10 +244,16 @@ function annaphoto_tools_dashboard_render() {
 
 	.ap-hub-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+		grid-template-columns: repeat(6, 1fr);
 		gap: 10px;
 		padding: 16px;
 		background: #f8fafc;
+	}
+	@media (max-width: 900px) {
+		.ap-hub-grid { grid-template-columns: repeat(3, 1fr); }
+	}
+	@media (max-width: 500px) {
+		.ap-hub-grid { grid-template-columns: repeat(2, 1fr); }
 	}
 	.ap-hub-tool {
 		display: block; text-decoration: none;
@@ -250,6 +261,10 @@ function annaphoto_tools_dashboard_render() {
 		padding: 14px 12px; text-align: center;
 		transition: all .18s cubic-bezier(.4,0,.2,1);
 		position: relative;
+		grid-column: span 2;
+	}
+	@media (max-width: 500px) {
+		.ap-hub-tool { grid-column: span 1; }
 	}
 	.ap-hub-tool:hover {
 		transform: translateY(-3px);
@@ -259,21 +274,30 @@ function annaphoto_tools_dashboard_render() {
 	.ap-hub-tool.is-primary {
 		background: linear-gradient(135deg, var(--tool-accent) 0%, color-mix(in srgb, var(--tool-accent) 70%, #000) 100%);
 		border-color: transparent;
-		grid-column: 1 / -1;
-		padding: 22px 18px;
+		grid-column: span 3;
+		padding: 24px 22px;
+		text-align: left;
+		min-height: 120px;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+	}
+	@media (max-width: 700px) {
+		.ap-hub-tool.is-primary { grid-column: 1 / -1; }
 	}
 	.ap-hub-tool.is-primary .ap-hub-tool-title,
 	.ap-hub-tool.is-primary .ap-hub-tool-desc {
 		color: #fff;
 	}
-	.ap-hub-tool.is-primary .ap-hub-tool-emoji { font-size: 32px; }
-	.ap-hub-tool.is-primary .ap-hub-tool-title { font-size: 17px; }
+	.ap-hub-tool.is-primary .ap-hub-tool-emoji { font-size: 38px; text-align: left; }
+	.ap-hub-tool.is-primary .ap-hub-tool-title { font-size: 20px; margin-top: 4px; }
+	.ap-hub-tool.is-primary .ap-hub-tool-desc { font-size: 13px; opacity: 0.95; margin-top: 4px; }
 	.ap-hub-tool.is-primary::after {
-		content: "→"; position: absolute; top: 50%; right: 20px;
-		transform: translateY(-50%); color: #fff; font-size: 22px;
-		transition: transform .2s;
+		content: "→"; position: absolute; top: 50%; right: 22px;
+		transform: translateY(-50%); color: #fff; font-size: 28px;
+		transition: transform .2s; font-weight: 300;
 	}
-	.ap-hub-tool.is-primary:hover::after { transform: translateY(-50%) translateX(5px); }
+	.ap-hub-tool.is-primary:hover::after { transform: translateY(-50%) translateX(6px); }
 
 	.ap-hub-tool-emoji {
 		font-size: 24px; line-height: 1;
