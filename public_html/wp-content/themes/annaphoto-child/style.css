@@ -233,7 +233,11 @@ h1, h2, h3 {
         width: 100%;
         z-index: 99999 !important;
         padding: 14px 0;
-        background: transparent;
+        /* Toujours opaque, meme en haut de page : sinon le bandeau du
+           site header s'affiche derriere et donne l'impression que le
+           menu est "au milieu de rien". */
+        background: #fde8e8 !important;
+        box-shadow: 0 2px 12px rgba(139, 111, 111, 0.08);
         transition:
             background .4s ease,
             padding .4s ease,
@@ -308,6 +312,19 @@ h1, h2, h3 {
     .site-nav.is-scrolled {
         padding-top: 12px !important;
         padding-bottom: 12px !important;
+    }
+
+    /* Sur les pages d'article, on masque le bandeau du site header de Bard
+       (baniere + tagline + logo AR) qui restait affiche derriere le menu
+       sticky. On garde uniquement : menu -> article. Le menu deplace en
+       enfant de <body> par le JS n'est PAS concerne par ce masquage. */
+    body.single-post .site-header:not(.site-nav):not([data-ap-nav]),
+    body.single-post #masthead:not(.site-nav):not([data-ap-nav]),
+    body.single-post .header:not(.site-nav):not([data-ap-nav]),
+    body.single-post .main-header:not(.site-nav):not([data-ap-nav]),
+    body.single-post header.site-header,
+    body.single-post #site-header {
+        display: none !important;
     }
 }
 
