@@ -1,0 +1,119 @@
+/*
+ * Editor style — Anna Photo
+ *
+ * Ce CSS s'applique dans l'editeur Gutenberg pour que ce qu'Anna voit
+ * en ecrivant soit le plus proche possible de ce qui sera publie.
+ */
+
+.editor-styles-wrapper {
+    background: #fdf5f2;
+    color: #3d2e2e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.editor-styles-wrapper h1,
+.editor-styles-wrapper h2,
+.editor-styles-wrapper h3,
+.editor-styles-wrapper h4 {
+    font-family: Georgia, 'Cormorant Garamond', serif;
+    font-weight: 400;
+    color: #3d2e2e;
+    letter-spacing: -0.005em;
+}
+
+.editor-styles-wrapper p {
+    line-height: 1.7;
+    font-size: 17px;
+}
+
+/* Styles de bloc — meme rendu que sur le site publie */
+
+/* Chapo italique */
+.editor-styles-wrapper .is-style-annaphoto-lead {
+    font-family: Georgia, 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 1.5em;
+    line-height: 1.5;
+    color: #8b6f6f;
+}
+/* Citation rose */
+.editor-styles-wrapper .is-style-annaphoto-quote {
+    text-align: center;
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 1.25em;
+    line-height: 1.6;
+    color: #d4a5a5;
+    padding: 1em 2em;
+    border-top: 1px solid rgba(212,165,165,.3);
+    border-bottom: 1px solid rgba(212,165,165,.3);
+}
+/* Note discrete */
+.editor-styles-wrapper .is-style-annaphoto-note {
+    font-size: 0.85em;
+    color: #a89592;
+    font-style: italic;
+    padding-left: 1em;
+    border-left: 3px solid #d4a5a5;
+}
+/* Lettrine mauve */
+.editor-styles-wrapper .is-style-annaphoto-drop::first-letter {
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 4em;
+    float: left;
+    line-height: 0.9;
+    padding: 4px 12px 0 0;
+    color: #8b6f6f;
+}
+
+/* Titres */
+.editor-styles-wrapper .is-style-annaphoto-italic {
+    font-style: italic;
+}
+.editor-styles-wrapper .is-style-annaphoto-underline {
+    display: inline-block;
+    border-bottom: 2px solid #d4a5a5;
+    padding-bottom: 4px;
+}
+.editor-styles-wrapper .is-style-annaphoto-centered-line {
+    text-align: center;
+}
+.editor-styles-wrapper .is-style-annaphoto-centered-line::after {
+    content: "";
+    display: block;
+    width: 32px;
+    height: 1px;
+    background: #d4a5a5;
+    margin: 12px auto 0;
+}
+
+/* Panneaux */
+.editor-styles-wrapper .wp-block-group.is-style-annaphoto-panel-rose {
+    background: #fdf5f2;
+    border: 1px solid rgba(212,165,165,.3);
+    border-radius: 12px;
+    padding: 24px 28px;
+}
+.editor-styles-wrapper .wp-block-group.is-style-annaphoto-panel-aubergine {
+    background: #3d2e2e;
+    color: #fdf5f2;
+    border-radius: 12px;
+    padding: 24px 28px;
+}
+
+/* Separateurs */
+.editor-styles-wrapper .wp-block-separator.is-style-annaphoto-heart::after {
+    content: "♥";
+    color: #d4a5a5;
+    font-size: 1.3em;
+    display: block;
+    text-align: center;
+}
+.editor-styles-wrapper .wp-block-separator.is-style-annaphoto-dots::after {
+    content: "• • •";
+    color: #d4a5a5;
+    letter-spacing: 0.6em;
+    display: block;
+    text-align: center;
+}
