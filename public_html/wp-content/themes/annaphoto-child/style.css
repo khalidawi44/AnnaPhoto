@@ -867,6 +867,25 @@ body.ap-layout-immersif .post-content > p:first-of-type {
 }
 
 /* -----------------------------------------------------------------------
- * 10. Espace pour tes futurs styles personnalises
+ * 10. Masquer le nuage d'etiquettes (tags) sur les articles
+ *     Anna veut une lecture plus propre sans le bloc ETIQUETTES en sidebar.
+ * ----------------------------------------------------------------------- */
+body.single-post .widget_tag_cloud,
+body.single-post .widget.widget_tag_cloud,
+body.single-post .wp-block-tag-cloud,
+body.single-post aside .tagcloud,
+body.single-post .sidebar .widget_tag_cloud,
+body.single-post .widget-area .widget_tag_cloud {
+    display: none !important;
+}
+/* Cache aussi les etiquettes eventuelles rendues dans l'en-tete/pied de l'article */
+body.single-post .entry-tags,
+body.single-post .post-tags,
+body.single-post .tags-links {
+    display: none !important;
+}
+
+/* -----------------------------------------------------------------------
+ * 11. Espace pour tes futurs styles personnalises
  * ----------------------------------------------------------------------- */
 /* Ajoute tes regles ici ou dans assets/css/custom.css */
