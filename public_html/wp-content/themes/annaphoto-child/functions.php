@@ -236,11 +236,60 @@ add_filter( 'excerpt_more', function () { return ' →'; } );
 */
 
 /* ===========================================================================
- * 4. Charger les fichiers inclus (inc/)
+ * 4. Charger les fichiers inclus (inc/) — chaque include isole dans try/catch
+ *    pour qu'une erreur dans UN fichier ne casse pas tout le site.
  * ========================================================================= */
 $inc_dir = get_stylesheet_directory() . '/inc';
 if ( is_dir( $inc_dir ) ) {
 	foreach ( glob( $inc_dir . '/*.php' ) as $file ) {
-		require_once $file;
+		try {
+			require_once $file;
+		} catch ( \Throwable $e ) {
+			annaphoto_log_crash( 'include ' . basename( $file ), $e );
+		}
 	}
 }
+
+/* ===========================================================================
+ * 5. Capteur d'erreurs fatales
+ *
+ * Ecrit toute erreur fatale (E_ERROR, E_PARSE, etc.) et toute exception
+ * non attrapee dans /wp-content/annaphoto-crash-log.txt. Anna peut le lire
+ * via https://annaphoto.eu/wp-content/annaphoto-crash-log.txt.
+ * ========================================================================= */
+function annaphoto_log_crash( $context, $error ) {
+	$dir = WP_CONTENT_DIR;
+	if ( ! is_writable( $dir ) ) { return; }
+	$file = $dir . '/annaphoto-crash-log.txt';
+	$msg  = '[' . gmdate( 'Y-m-d H:i:s' ) . " UTC] $context\n";
+	if ( $error instanceof \Throwable ) {
+		$msg .= 'MSG : ' . $error->getMessage() . "\n";
+		$msg .= 'FILE : ' . $error->getFile() . ':' . $error->getLine() . "\n";
+		$msg .= "TRACE:\n" . $error->getTraceAsString() . "\n";
+	} elseif ( is_array( $error ) ) {
+		$msg .= 'MSG : ' . ( $error['message'] ?? '?' ) . "\n";
+		$msg .= 'FILE : ' . ( $error['file'] ?? '?' ) . ':' . ( $error['line'] ?? '?' ) . "\n";
+		$msg .= 'TYPE : ' . ( $error['type'] ?? '?' ) . "\n";
+	} else {
+		$msg .= 'MSG : ' . print_r( $error, true ) . "\n";
+	}
+	$url = isset( $_SERVER['REQUEST_URI'] ) ? (string) $_SERVER['REQUEST_URI'] : '';
+	$msg .= 'URL : ' . $url . "\n";
+	$msg .= "---\n";
+	// Cap le fichier a 200 Ko pour ne pas grossir sans fin
+	if ( file_exists( $file ) && filesize( $file ) > 200 * 1024 ) {
+		@unlink( $file );
+	}
+	@file_put_contents( $file, $msg, FILE_APPEND );
+}
+register_shutdown_function( function () {
+	$err = error_get_last();
+	if ( ! $err ) { return; }
+	$fatal = array( E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR );
+	if ( in_array( $err['type'] ?? 0, $fatal, true ) ) {
+		annaphoto_log_crash( 'FATAL SHUTDOWN', $err );
+	}
+} );
+set_exception_handler( function ( $e ) {
+	annaphoto_log_crash( 'UNCAUGHT EXCEPTION', $e );
+} );

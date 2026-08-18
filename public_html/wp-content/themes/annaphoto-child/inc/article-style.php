@@ -765,12 +765,31 @@ function ann_art_body_class( $classes ) {
 add_action( 'wp_head', 'ann_art_inline_css', 99 );
 function ann_art_inline_css() {
 	if ( ! is_singular( 'post' ) ) { return; }
+	try {
+		ann_art_inline_css_body();
+	} catch ( \Throwable $e ) {
+		if ( function_exists( 'annaphoto_log_crash' ) ) {
+			annaphoto_log_crash( 'ann_art_inline_css', $e );
+		}
+		echo "\n<!-- Anna Photo Style: erreur silencieuse -->\n";
+	}
+}
+function ann_art_inline_css_body() {
 	$s        = ann_art_get();
 	$palettes = ann_art_palettes();
 	$fonts    = ann_art_fontpairs();
 
+	// Fallbacks defensifs pour toutes les cles utilisees plus bas
+	$s['layout']       = isset( $s['layout'] )       ? (string) $s['layout']       : 'editorial';
+	$s['palette']      = isset( $s['palette'] )      ? (string) $s['palette']      : 'rose';
+	$s['fontpair']     = isset( $s['fontpair'] )     ? (string) $s['fontpair']     : 'cormorant_inter';
+	$s['title_align']  = isset( $s['title_align'] )  ? (string) $s['title_align']  : 'center';
+	$s['column_width'] = isset( $s['column_width'] ) ? (string) $s['column_width'] : 'medium';
+
 	// Marqueur de debug pour verifier que le CSS s'applique
-	echo "\n<!-- Anna Photo Style : layout={$s['layout']} palette={$s['palette']} font={$s['fontpair']} -->\n";
+	echo "\n<!-- Anna Photo Style : layout=" . esc_html( $s['layout'] )
+		. ' palette=' . esc_html( $s['palette'] )
+		. ' font=' . esc_html( $s['fontpair'] ) . " -->\n";
 
 	// Palette : preset ou custom
 	if ( 'custom' === $s['palette'] ) {
